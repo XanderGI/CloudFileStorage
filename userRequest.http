@@ -49,3 +49,7 @@ Content-Type: application/json
   "username": "xander",
   "password": "secret123"
 }
+
+### check me username (401)
+
+GET http://localhost:8080/api/user/me
