@@ -15,7 +15,7 @@ public class MinioKeyBuilder {
     @Value("${minio.prefix.template}")
     private String templatePrefix;
 
-    public String buildRootPrefix(String userId) {
+    public String buildRootPrefix(Long userId) {
         return templatePrefix.formatted(userId);
     }
 
@@ -27,7 +27,7 @@ public class MinioKeyBuilder {
         return pathOrKey.endsWith(KEY_DELIMITER);
     }
 
-    public String buildMinioKey(String userId, String path) {
+    public String buildMinioKey(Long userId, String path) {
         if (path == null || path.isBlank()) {
             return buildRootPrefix(userId);
         }
@@ -37,7 +37,7 @@ public class MinioKeyBuilder {
         return buildRootPrefix(userId).concat(cleanPath);
     }
 
-    public String extractFilePath(String userId, String path) {
+    public String extractFilePath(Long userId, String path) {
         if (path == null || path.isBlank()) {
             return ROOT_PATH;
         }

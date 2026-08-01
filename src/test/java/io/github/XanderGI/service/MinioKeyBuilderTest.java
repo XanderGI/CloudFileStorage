@@ -13,7 +13,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 public class MinioKeyBuilderTest {
-    private static final String USER_ID = "42";
+    private static final Long USER_ID = 42L;
     private static final String EXPECTED_ROOT = "user-42-files/";
     private static final String ROOT_PATH = "/";
 
