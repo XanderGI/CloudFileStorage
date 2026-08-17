@@ -12,21 +12,21 @@ import org.springframework.test.util.ReflectionTestUtils;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
-public class MinioKeyBuilderTest {
+public class MinioPathHelperTest {
     private static final Long USER_ID = 42L;
     private static final String EXPECTED_ROOT = "user-42-files/";
     private static final String ROOT_PATH = "/";
 
-    private final MinioKeyBuilder builder = new MinioKeyBuilder();
+    private final MinioPathHelper helper = new MinioPathHelper();
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(builder, "templatePrefix", "user-%s-files/");
+        ReflectionTestUtils.setField(helper, "templatePrefix", "user-%s-files/");
     }
 
     @Test
     void shouldReturnCorrectRootPrefixWhenGetUserId() {
-        assertThat(builder.buildRootPrefix(USER_ID)).isEqualTo(EXPECTED_ROOT);
+        assertThat(helper.buildRootPrefix(USER_ID)).isEqualTo(EXPECTED_ROOT);
     }
 
     @ParameterizedTest
@@ -36,7 +36,7 @@ public class MinioKeyBuilderTest {
             "/, true"
     })
     void shouldIdentifyIfPathIsFolder(String path, boolean isFolder) {
-        assertThat(builder.isFolder(path)).isEqualTo(isFolder);
+        assertThat(helper.isFolder(path)).isEqualTo(isFolder);
     }
 
     @ParameterizedTest
@@ -44,7 +44,7 @@ public class MinioKeyBuilderTest {
     @EmptySource
     @ValueSource(strings = {" "})
     void shouldThrowExceptionWhenPathIsInvalid(String invalidPath) {
-        assertThatThrownBy(() -> builder.isFolder(invalidPath))
+        assertThatThrownBy(() -> helper.isFolder(invalidPath))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -53,7 +53,7 @@ public class MinioKeyBuilderTest {
     @EmptySource
     @ValueSource(strings = {" "})
     void shouldReturnRootPrefixWhenPathIsEmpty(String invalidPath) {
-        assertThat(builder.buildMinioKey(USER_ID, invalidPath)).isEqualTo(EXPECTED_ROOT);
+        assertThat(helper.buildMinioKey(USER_ID, invalidPath)).isEqualTo(EXPECTED_ROOT);
     }
 
     @ParameterizedTest
@@ -68,7 +68,7 @@ public class MinioKeyBuilderTest {
 
     })
     void shouldReturnNormalizeAndConcatPath(String rawPath, String expectedPath) {
-        assertThat(builder.buildMinioKey(USER_ID, rawPath)).isEqualTo(EXPECTED_ROOT.concat(expectedPath));
+        assertThat(helper.buildMinioKey(USER_ID, rawPath)).isEqualTo(EXPECTED_ROOT.concat(expectedPath));
     }
 
     @ParameterizedTest
@@ -76,12 +76,12 @@ public class MinioKeyBuilderTest {
     @EmptySource
     @ValueSource(strings = {" "})
     void shouldReturnRootPathWhenPathIsEmpty(String invalidPath) {
-        assertThat(builder.extractFilePath(USER_ID, invalidPath)).isEqualTo(ROOT_PATH);
+        assertThat(helper.extractFilePath(USER_ID, invalidPath)).isEqualTo(ROOT_PATH);
     }
 
     @Test
     void shouldReturnRootPathWhenKeyMatchesRootPrefix() {
-        assertThat(builder.extractFilePath(USER_ID, EXPECTED_ROOT)).isEqualTo(ROOT_PATH);
+        assertThat(helper.extractFilePath(USER_ID, EXPECTED_ROOT)).isEqualTo(ROOT_PATH);
     }
 
     @ParameterizedTest
@@ -92,7 +92,7 @@ public class MinioKeyBuilderTest {
             "/user-42-files//, /"
     })
     void shouldExtractPathCorrectly(String rawPath, String expectedPath) {
-        assertThat(builder.extractFilePath(USER_ID, rawPath)).isEqualTo(expectedPath);
+        assertThat(helper.extractFilePath(USER_ID, rawPath)).isEqualTo(expectedPath);
     }
 
     @ParameterizedTest
@@ -102,7 +102,7 @@ public class MinioKeyBuilderTest {
             "//user-666-files//folder1/"
     })
     void shouldThrowExceptionWhenKeyDoesNotBelongToUser(String rawPath) {
-        assertThatThrownBy(() -> builder.extractFilePath(USER_ID, rawPath))
+        assertThatThrownBy(() -> helper.extractFilePath(USER_ID, rawPath))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Key does not belong to user");
     }
@@ -116,13 +116,13 @@ public class MinioKeyBuilderTest {
             "../"
     })
     void shouldThrowExceptionWhenPathContainsPathTraversal(String rawPath) {
-        assertThatThrownBy(() -> builder.buildMinioKey(USER_ID, rawPath))
+        assertThatThrownBy(() -> helper.buildMinioKey(USER_ID, rawPath))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Invalid path segments:");
 
-        String unsafeKey = builder.buildRootPrefix(USER_ID).concat(rawPath);
+        String unsafeKey = helper.buildRootPrefix(USER_ID).concat(rawPath);
 
-        assertThatThrownBy(() -> builder.extractFilePath(USER_ID, unsafeKey))
+        assertThatThrownBy(() -> helper.extractFilePath(USER_ID, unsafeKey))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Invalid path segments:");
     }
@@ -138,8 +138,8 @@ public class MinioKeyBuilderTest {
             "./files.md, files.md"
     })
     void shouldGetOriginalPathAfterBuildingAndExtractingKey(String rawPath, String expectedPath) {
-        String minioKey = builder.buildMinioKey(USER_ID, rawPath);
-        String extractedPath = builder.extractFilePath(USER_ID, minioKey);
+        String minioKey = helper.buildMinioKey(USER_ID, rawPath);
+        String extractedPath = helper.extractFilePath(USER_ID, minioKey);
 
         assertThat(extractedPath).isEqualTo(expectedPath);
     }

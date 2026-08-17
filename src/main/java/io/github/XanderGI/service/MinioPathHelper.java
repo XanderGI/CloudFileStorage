@@ -7,10 +7,9 @@ import org.springframework.util.StringUtils;
 import java.util.Arrays;
 
 @Component
-public class MinioKeyBuilder {
+public class MinioPathHelper {
     private static final String KEY_DELIMITER = "/";
     private static final String ROOT_PATH = "/";
-
 
     @Value("${minio.prefix.template}")
     private String templatePrefix;
@@ -66,11 +65,11 @@ public class MinioKeyBuilder {
         String normalizePath = StringUtils.cleanPath(path);
 
         if (normalizePath.isEmpty() ||
-                Arrays.asList(normalizePath.split("/")).contains("..")) {
-            throw new IllegalArgumentException("Invalid path segments:" + path);
+                Arrays.asList(normalizePath.split(KEY_DELIMITER)).contains("..")) {
+            throw new IllegalArgumentException("Invalid path segments: " + path);
         }
 
-        String sanitized = normalizePath.replaceAll("/+", "/");
+        String sanitized = normalizePath.replaceAll("/+", KEY_DELIMITER);
 
         return sanitized.replaceAll("^/", "");
     }
