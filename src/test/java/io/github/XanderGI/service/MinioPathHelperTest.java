@@ -143,4 +143,26 @@ public class MinioPathHelperTest {
 
         assertThat(extractedPath).isEqualTo(expectedPath);
     }
+
+    @ParameterizedTest
+    @CsvSource({
+            "folder1/text.txt, text.txt",
+            "/folder1/folder2/, folder2",
+            "/folder1/folder2/folder3/, folder3",
+            "folder1/, folder1"
+    })
+    void shouldReturnOnlyNameAfterGetMethodCall(String path, String expectedPath) {
+        assertThat(helper.getName(path)).isEqualTo(expectedPath);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "/folder1/text.txt, folder1/",
+            "/folder1/folder2/, folder1/",
+            "folder3/, /",
+
+    })
+    void shouldReturnContextPathWhenCallGetContextPathMethod(String path, String expectedPath) {
+        assertThat(helper.getContextPath(path)).isEqualTo(expectedPath);
+    }
 }

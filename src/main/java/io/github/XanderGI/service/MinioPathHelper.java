@@ -1,5 +1,6 @@
 package io.github.XanderGI.service;
 
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -61,6 +62,22 @@ public class MinioPathHelper {
         return normalizeAndSanitizePath(suffix);
     }
 
+    public String getName(String path) {
+        String normalizePath = normalizeForParsing(path);
+        return FilenameUtils.getName(normalizePath);
+    }
+
+    public String getContextPath(String path) {
+        String normalizePath = normalizeForParsing(path);
+        String contextPath = FilenameUtils.getFullPath(normalizePath);
+
+        if (contextPath.isBlank()) {
+            return ROOT_PATH;
+        }
+
+        return contextPath;
+    }
+
     private String normalizeAndSanitizePath(String path) {
         String normalizePath = StringUtils.cleanPath(path);
 
@@ -72,5 +89,15 @@ public class MinioPathHelper {
         String sanitized = normalizePath.replaceAll("/+", KEY_DELIMITER);
 
         return sanitized.replaceAll("^/", "");
+    }
+
+    private String normalizeForParsing(String path) {
+        String normalizePath = normalizeAndSanitizePath(path);
+
+        if (isFolder(normalizePath)) {
+            normalizePath = StringUtils.trimTrailingCharacter(normalizePath, '/');
+        }
+
+        return normalizePath;
     }
 }
