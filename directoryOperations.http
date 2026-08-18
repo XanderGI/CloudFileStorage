@@ -1,0 +1,68 @@
+# create folder
+
+## 200 OK
+
+### Create folder in root
+POST http://localhost:8080/api/directory?path=documents2/
+
+### Create subfoler
+POST http://localhost:8080/api/directory?path=documents/work/
+
+### Create a deep subfolder
+POST http://localhost:8080/api/directory?path=documents/work/projects/
+
+### Create folder with numbers
+POST http://localhost:8080/api/directory?path=documents/work/projects/6/
+
+### Create folder with dash and underscope
+POST http://localhost:8080/api/directory?path=documents/my-files_backup/
+
+## 400 bad request
+
+### only slash in path (здесь выдал 500 а должен 400)
+POST http://localhost:8080/api/directory?path=/
+
+### too much slashs (тоже выдал 500)
+POST http://localhost:8080/api/directory?path=///
+
+### empty path
+POST http://localhost:8080/api/directory?path=
+
+### request without parametr
+POST http://localhost:8080/api/directory
+
+### path traversal attempt
+POST http://localhost:8080/api/directory?path=../secret/
+
+### subpath traversal
+POST http://localhost:8080/api/directory?path=folder1/../../secret/
+
+## 404 not found
+
+### not exist one parent folder
+POST http://localhost:8080/api/directory?path=documents/not_exist_path/secretFolder/
+
+### a non-existent path
+POST http://localhost:8080/api/directory?path=a/b/c/d/
+
+## 409 conflict
+
+### Folder already created
+POST http://localhost:8080/api/directory?path=documents/
+
+## edge cases
+
+### without trailing slash
+POST http://localhost:8080/api/directory?path=documents
+
+### double slash
+POST http://localhost:8080/api/directory?path=documents//work/
+
+### hidden folder
+POST http://localhost:8080/api/directory?path=.hidden/
+
+### folder with long name
+POST http://localhost:8080/api/directory?path=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/
+
+### folder equals root user path
+POST http://localhost:8080/api/directory?path=user-1-files/
