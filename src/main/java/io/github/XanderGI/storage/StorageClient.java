@@ -1,14 +1,12 @@
 package io.github.XanderGI.storage;
 
-import io.github.XanderGI.dto.ResourceResponseDto;
-
 import java.io.InputStream;
 import java.util.List;
 
 public interface StorageClient {
     void createFolder(String key);
 
-    ResourceResponseDto upload(String key, InputStream inputStream);
+    StorageItem upload(String key, InputStream inputStream);
 
     InputStream getObject(String key);
 
@@ -16,7 +14,7 @@ public interface StorageClient {
 
     boolean exist(String key);
 
-    List<ResourceResponseDto> listObjects(String key, boolean recursive);
+    List<StorageItem> listObjects(String key, boolean isRecursive);
 
     void removeObject(String key);
 
