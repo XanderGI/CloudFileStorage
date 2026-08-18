@@ -66,3 +66,43 @@ POST http://localhost:8080/api/directory?path=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 
 ### folder equals root user path
 POST http://localhost:8080/api/directory?path=user-1-files/
+
+# get list folder
+
+## 200
+
+### get root list info
+
+GET http://localhost:8080/api/directory?path=/
+
+### get list info - simple path
+
+GET http://localhost:8080/api/directory?path=documents/
+
+### get list info when directory empty
+
+GET http://localhost:8080/api/directory?path=documents/work/
+
+## 400
+
+### without parametr
+
+GET http://localhost:8080/api/directory
+
+### with '~` parametr
+
+GET http://localhost:8080/api/directory?path=~
+
+### get info if path isn't directory
+
+GET http://localhost:8080/api/directory?path=documents/test.txt
+
+## 404
+
+### folder does not exist
+
+GET http://localhost:8080/api/directory?path=not-exist/
+
+### get alient directoty
+
+GET http://localhost:8080/api/directory?path=user-1-files/
