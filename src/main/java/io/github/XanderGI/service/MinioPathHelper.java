@@ -37,7 +37,29 @@ public class MinioPathHelper {
         return buildRootPrefix(userId).concat(cleanPath);
     }
 
-    public String extractFilePath(Long userId, String path) {
+    public String getName(String path) {
+        String normalizePath = normalizeForParsing(path);
+        return FilenameUtils.getName(normalizePath);
+    }
+
+    public String getContextPath(String path) {
+        String normalizePath = normalizeForParsing(path);
+        String contextPath = FilenameUtils.getFullPath(normalizePath);
+
+        if (contextPath.isBlank()) {
+            return ROOT_PATH;
+        }
+
+        return contextPath;
+    }
+
+    public String getContextPathFromKey(Long userId, String key) {
+        String extractPath = extractFilePath(userId, key);
+
+        return getContextPath(extractPath);
+    }
+
+    private String extractFilePath(Long userId, String path) {
         if (path == null || path.isBlank()) {
             return ROOT_PATH;
         }
@@ -60,22 +82,6 @@ public class MinioPathHelper {
         String suffix = structural.substring(userPrefix.length());
 
         return normalizeAndSanitizePath(suffix);
-    }
-
-    public String getName(String path) {
-        String normalizePath = normalizeForParsing(path);
-        return FilenameUtils.getName(normalizePath);
-    }
-
-    public String getContextPath(String path) {
-        String normalizePath = normalizeForParsing(path);
-        String contextPath = FilenameUtils.getFullPath(normalizePath);
-
-        if (contextPath.isBlank()) {
-            return ROOT_PATH;
-        }
-
-        return contextPath;
     }
 
     private String normalizeAndSanitizePath(String path) {
