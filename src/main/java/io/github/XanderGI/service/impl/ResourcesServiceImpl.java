@@ -7,9 +7,12 @@ import io.github.XanderGI.exception.ResourceNotFoundException;
 import io.github.XanderGI.service.MinioPathHelper;
 import io.github.XanderGI.service.ResourcesService;
 import io.github.XanderGI.storage.StorageClient;
+import io.github.XanderGI.storage.StorageItem;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 //todo: добавить mapper для dto
 
@@ -40,5 +43,26 @@ public class ResourcesServiceImpl implements ResourcesService {
         String name = helper.getName(path);
         ResourceType type = ResourceType.DIRECTORY;
         return new ResourceResponseDto(contextPath, name, null, type);
+    }
+
+    @Override
+    public List<ResourceResponseDto> listDirectory(Long userId, String path) {
+        String key = helper.buildMinioKey(userId, path);
+        boolean isRoot = path.equals("/");
+
+        if (!isRoot && !storageClient.exist(key)) {
+            throw new ResourceNotFoundException("failed to get list directory: directory does not exist");
+        }
+
+        List<StorageItem> storageItems = storageClient.listObjects(key, false);
+
+        return storageItems.stream()
+                .map(item -> new ResourceResponseDto(
+                        helper.getContextPathFromKey(userId, item.key()),
+                        helper.getName(item.key()),
+                        item.size(),
+                        item.isDirectory() ? ResourceType.DIRECTORY : ResourceType.FILE
+                ))
+                .toList();
     }
 }
