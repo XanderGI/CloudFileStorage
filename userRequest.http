@@ -53,3 +53,23 @@ Content-Type: application/json
 ### check me username (401)
 
 GET http://localhost:8080/api/user/me
+
+### second user register
+
+POST http://localhost:8080/api/auth/sign-up
+Content-Type: application/json
+
+{
+  "username": "xander2",
+  "password": "secret1234"
+}
+
+### second user auth
+
+POST http://localhost:8080/api/auth/sign-in
+Content-Type: application/json
+
+{
+  "username": "xander2",
+  "password": "secret1234"
+}
