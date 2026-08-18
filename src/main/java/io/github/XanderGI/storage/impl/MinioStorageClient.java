@@ -1,15 +1,13 @@
 package io.github.XanderGI.storage.impl;
 
-import io.github.XanderGI.dto.ResourceResponseDto;
 import io.github.XanderGI.exception.MinioStorageException;
 import io.github.XanderGI.storage.StorageClient;
+import io.github.XanderGI.storage.StorageItem;
 import io.github.XanderGI.storage.StorageObjectInfo;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
-import io.minio.StatObjectArgs;
-import io.minio.StatObjectResponse;
+import io.minio.*;
 import io.minio.errors.ErrorResponseException;
 import io.minio.errors.MinioException;
+import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,6 +16,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.stream.StreamSupport;
 
 @Service
 @RequiredArgsConstructor
@@ -43,7 +42,7 @@ public class MinioStorageClient implements StorageClient {
     }
 
     @Override
-    public ResourceResponseDto upload(String key, InputStream inputStream) {
+    public StorageItem upload(String key, InputStream inputStream) {
         return null;
     }
 
@@ -91,8 +90,14 @@ public class MinioStorageClient implements StorageClient {
     }
 
     @Override
-    public List<ResourceResponseDto> listObjects(String key, boolean recursive) {
-        return List.of();
+    public List<StorageItem> listObjects(String key, boolean isRecursive) {
+        Iterable<Result<Item>> results = fetchRawObjects(key, isRecursive);
+
+        return StreamSupport.stream(results.spliterator(), false)
+                .map(this::unwrapResult)
+                .filter(item -> !item.objectName().equals(key))
+                .map(this::toStorageItem)
+                .toList();
     }
 
     @Override
@@ -103,5 +108,33 @@ public class MinioStorageClient implements StorageClient {
     @Override
     public void copyObject(String fromKey, String toKey) {
 
+    }
+
+    private Iterable<Result<Item>> fetchRawObjects(String key, boolean isRecursive) {
+        return client.listObjects(
+                ListObjectsArgs.builder()
+                        .bucket(bucketName)
+                        .prefix(key)
+                        .recursive(isRecursive)
+                        .build()
+        );
+    }
+
+    private Item unwrapResult(Result<Item> itemResult) {
+        try {
+            return itemResult.get();
+        } catch (MinioException e) {
+            throw new MinioStorageException("failed to get list objects", e);
+        }
+    }
+
+    private StorageItem toStorageItem(Item item) {
+        boolean isDirectory = item.isDir();
+
+        return new StorageItem(
+                item.objectName(),
+                isDirectory ? null : item.size(),
+                isDirectory
+        );
     }
 }
