@@ -17,6 +17,9 @@ POST http://localhost:8080/api/directory?path=documents/work/projects/6/
 ### Create folder with dash and underscope
 POST http://localhost:8080/api/directory?path=documents/my-files_backup/
 
+### Create folder with short name
+POST http://localhost:8080/api/directory?path=a/
+
 ## 400 bad request
 
 ### only slash in path (здесь выдал 500 а должен 400)
@@ -52,19 +55,19 @@ POST http://localhost:8080/api/directory?path=documents/
 
 ## edge cases
 
-### without trailing slash
+### without trailing slash (400)
 POST http://localhost:8080/api/directory?path=documents
 
-### double slash
+### double slash (200 or 409)
 POST http://localhost:8080/api/directory?path=documents//work/
 
-### hidden folder
+### hidden folder (200 or 409)
 POST http://localhost:8080/api/directory?path=.hidden/
 
-### folder with long name
+### folder with long name (200 or 409)
 POST http://localhost:8080/api/directory?path=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/
 
-### folder equals root user path
+### folder equals root user path (200 or 409)
 POST http://localhost:8080/api/directory?path=user-1-files/
 
 # get list folder
