@@ -8,4 +8,6 @@ public interface ResourcesService {
     ResourceResponseDto createDirectory(Long userId, String path);
 
     List<ResourceResponseDto> listDirectory(Long userId, String path);
+
+    ResourceResponseDto getResourceInfo(Long userId, String path);
 }

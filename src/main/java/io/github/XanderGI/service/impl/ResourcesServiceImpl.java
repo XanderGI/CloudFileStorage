@@ -8,6 +8,7 @@ import io.github.XanderGI.service.MinioPathHelper;
 import io.github.XanderGI.service.ResourcesService;
 import io.github.XanderGI.storage.StorageClient;
 import io.github.XanderGI.storage.StorageItem;
+import io.github.XanderGI.storage.StorageObjectInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,7 +32,7 @@ public class ResourcesServiceImpl implements ResourcesService {
             throw new ResourceAlreadyExistsException("Failed to create directory: resource already exist.");
         }
 
-        String contextPath = helper.getContextPath(path);
+        String contextPath = helper.getContextPathFromKey(userId, key);
         String parentKey = helper.buildMinioKey(userId, contextPath);
 
         if (!contextPath.equals("/") && !storageClient.exist(parentKey)) {
@@ -40,9 +41,7 @@ public class ResourcesServiceImpl implements ResourcesService {
 
         storageClient.createFolder(key);
 
-        String name = helper.getName(path);
-        ResourceType type = ResourceType.DIRECTORY;
-        return new ResourceResponseDto(contextPath, name, null, type);
+        return toDto(userId, key, null, helper.isFolder(key));
     }
 
     @Override
@@ -57,12 +56,32 @@ public class ResourcesServiceImpl implements ResourcesService {
         List<StorageItem> storageItems = storageClient.listObjects(key, false);
 
         return storageItems.stream()
-                .map(item -> new ResourceResponseDto(
-                        helper.getContextPathFromKey(userId, item.key()),
-                        helper.getName(item.key()),
-                        item.size(),
-                        item.isDirectory() ? ResourceType.DIRECTORY : ResourceType.FILE
-                ))
+                .map(item ->
+                        toDto(userId, item.key(), item.size(), item.isDirectory())
+                )
                 .toList();
+    }
+
+    @Override
+    public ResourceResponseDto getResourceInfo(Long userId, String path) {
+        String key = helper.buildMinioKey(userId, path);
+
+        if (!storageClient.exist(key)) {
+            throw new ResourceNotFoundException("Failed to get info about resource: resource not found");
+        }
+
+        StorageObjectInfo objectInfo = storageClient.statObject(key);
+        boolean isDirectory = helper.isFolder(key);
+
+        return toDto(userId, key, objectInfo.size(), isDirectory);
+    }
+
+    private ResourceResponseDto toDto(Long userId, String key, Long size, boolean isDirectory) {
+        return new ResourceResponseDto(
+                helper.getContextPathFromKey(userId, key),
+                helper.getName(key),
+                isDirectory ? null : size,
+                isDirectory ? ResourceType.DIRECTORY : ResourceType.FILE
+        );
     }
 }
