@@ -1,0 +1,75 @@
+# get info about resource
+
+## 200
+
+### valid response format
+GET http://localhost:8080/api/resource?path=documents/
+
+### inner resource
+GET http://localhost:8080/api/resource?path=documents/work/
+
+### path with one letter resource
+GET http://localhost:8080/api/resource?path=a/
+
+### resource with underscope and dash
+GET http://localhost:8080/api/resource?path=documents/my-files_backup/
+
+### resource with numbers
+GET http://localhost:8080/api/resource?path=documents/work/projects/6/
+
+### hidden folder = resource
+GET http://localhost:8080/api/resource?path=.hidden/
+
+### get info about file
+GET http://localhost:8080/api/resource?path=documents/testSizeFile.txt
+
+## 400
+
+### without parametr
+GET http://localhost:8080/api/resource
+
+### empty paramert path
+GET http://localhost:8080/api/resource?path=
+
+### only slashes in root
+GET http://localhost:8080/api/resource?path=///
+
+### Path traversal in root
+GET http://localhost:8080/api/resource?path=../secret/
+
+### inner path traversal
+GET http://localhost:8080/api/resource?path=documents/../../etc/passwd
+
+## 404
+
+### URL-encoded path in root
+GET http://localhost:8080/api/resource?path=%20
+
+### "~" valid resource name but not exist resource
+GET http://localhost:8080/api/resource?path=~
+
+### URL-encoded path folder
+GET http://localhost:8080/api/resource?path=my%20folder/
+
+### if path="/" - not resource
+GET http://localhost:8080/api/resource?path=/
+
+### not exist in root
+GET http://localhost:8080/api/resource?path=non_exist/
+
+### not exist folder
+GET http://localhost:8080/api/resource?path=docs/non_exist/
+
+### not exist parent path
+GET http://localhost:8080/api/resource?path=a/b/c/d/
+
+## edge cases
+
+### double slash (200)
+GET http://localhost:8080/api/resource?path=documents//work/
+
+### resource with long name (404)
+GET http://localhost:8080/api/resource?path=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/
+
+### get alient resource (404)
+GET http://localhost:8080/api/resource?path=user-2-files/
