@@ -22,7 +22,7 @@ public class DirectoryController {
 
     @PostMapping
     public ResponseEntity<ResourceResponseDto> createFolder(
-            @Pattern(regexp = "^.+[^/].*/$", message = "Folder path must be non-empty and end with /") @RequestParam String path,
+            @Pattern(regexp = "^.*[^/].*/$", message = "Directory path must be non-empty and end with /") @RequestParam String path,
             @AuthenticationPrincipal SecurityUser currentUser
     ) {
         ResourceResponseDto dto = resourcesService.createDirectory(currentUser.getId(), path);
@@ -34,7 +34,7 @@ public class DirectoryController {
 
     @GetMapping
     public ResponseEntity<List<ResourceResponseDto>> getFolderInfo(
-            @Pattern(regexp = "^(/|.+[^/].*/)$", message = "Folder path must be non-empty and end with /") @RequestParam String path,
+            @Pattern(regexp = "^(/|.*[^/].*/)$", message = "Directory path must be non-empty and end with /") @RequestParam String path,
             @AuthenticationPrincipal SecurityUser currentUser
     ) {
         List<ResourceResponseDto> list = resourcesService.listDirectory(currentUser.getId(), path);
