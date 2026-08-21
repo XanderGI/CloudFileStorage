@@ -73,3 +73,101 @@ GET http://localhost:8080/api/resource?path=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 
 ### get alient resource (404)
 GET http://localhost:8080/api/resource?path=user-2-files/
+
+# delete resource
+
+## 204
+
+### delete existing empty folder
+POST http://localhost:8080/api/directory?path=to-delete/
+###
+DELETE http://localhost:8080/api/resource?path=to-delete/
+
+### delete existing file (need implements upload file operation!!!)
+POST http://localhost:8080/api/directory?path=to-delete/
+###
+#POST http://localhost:8080/api/resource?path=to-delete/file.txt
+###
+DELETE http://localhost:8080/api/resource?path=to-delete/file.txt
+
+### delete folder with nested content (recursive)
+POST http://localhost:8080/api/directory?path=deep/
+###
+POST http://localhost:8080/api/directory?path=deep/nested/
+###
+POST http://localhost:8080/api/directory?path=deep/nested/inner/
+###
+DELETE http://localhost:8080/api/resource?path=deep/
+
+### single-letter folder
+POST http://localhost:8080/api/directory?path=a/
+###
+DELETE http://localhost:8080/api/resource?path=a/
+
+### file with dash and underscore (need implements upload file operation!!!)
+#POST http://localhost:8080/api/resource?path=my-files_backup.txt
+###
+DELETE http://localhost:8080/api/resource?path=my-files_backup.txt
+
+## 400
+
+### without param
+DELETE http://localhost:8080/api/resource
+
+### empty param
+DELETE http://localhost:8080/api/resource?path=
+
+### only slashes
+DELETE http://localhost:8080/api/resource?path=///
+
+### path traversal in root
+DELETE http://localhost:8080/api/resource?path=../secret/
+
+### inner path traversal
+DELETE http://localhost:8080/api/resource?path=documents/../../etc/passwd
+
+## 404
+
+### non-existent file
+DELETE http://localhost:8080/api/resource?path=ghost.txt
+
+### non-existent folder
+DELETE http://localhost:8080/api/resource?path=non-exist/
+
+### non-existent deep path
+DELETE http://localhost:8080/api/resource?path=a/b/c/d/
+
+### if path is root
+DELETE http://localhost:8080/api/resource?path=/
+
+### URL-encoded space
+DELETE http://localhost:8080/api/resource?path=%20
+
+### alien resource
+DELETE http://localhost:8080/api/resource?path=user-2-files/
+
+## edge cases
+
+### delete empty folder
+POST http://localhost:8080/api/directory?path=empty-folder/
+###
+DELETE http://localhost:8080/api/resource?path=empty-folder/
+
+### double slash
+POST http://localhost:8080/api/directory?path=documents/
+###
+POST http://localhost:8080/api/directory?path=documents/work/
+###
+DELETE http://localhost:8080/api/resource?path=documents//work/
+
+### try delete .hidden file (need implements upload file operation!!!)
+#POST http://localhost:8080/api/resource?path=.hidden
+###
+DELETE http://localhost:8080/api/resource?path=.hidden
+
+### retry delete directory - 204 and 404
+POST http://localhost:8080/api/directory?path=once/
+###
+DELETE http://localhost:8080/api/resource?path=once/
+###
+DELETE http://localhost:8080/api/resource?path=once/
