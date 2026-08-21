@@ -18,5 +18,7 @@ public interface StorageClient {
 
     void removeObject(String key);
 
+    void removeObjects(List<String> keys);
+
     void copyObject(String fromKey, String toKey);
 }
