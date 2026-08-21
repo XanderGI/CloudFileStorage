@@ -68,7 +68,7 @@ public class MinioStorageClient implements StorageClient {
     }
 
     @Override
-    public boolean exist(String key) {
+    public boolean isExist(String key) {
         try {
             client.statObject(
                     StatObjectArgs.builder()

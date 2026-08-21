@@ -12,7 +12,7 @@ public interface StorageClient {
 
     StorageObjectInfo statObject(String key);
 
-    boolean exist(String key);
+    boolean isExist(String key);
 
     List<StorageItem> listObjects(String key, boolean isRecursive);
 

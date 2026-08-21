@@ -28,14 +28,14 @@ public class ResourcesServiceImpl implements ResourcesService {
     public ResourceResponseDto createDirectory(Long userId, String path) {
         String key = helper.buildMinioKey(userId, path);
 
-        if (storageClient.exist(key)) {
+        if (storageClient.isExist(key)) {
             throw new ResourceAlreadyExistsException("Failed to create directory: resource already exist.");
         }
 
         String contextPath = helper.getContextPathFromKey(userId, key);
         String parentKey = helper.buildMinioKey(userId, contextPath);
 
-        if (!contextPath.equals("/") && !storageClient.exist(parentKey)) {
+        if (!contextPath.equals("/") && !storageClient.isExist(parentKey)) {
             throw new ResourceNotFoundException("Failed to create directory: parent folder does not exist");
         }
 
@@ -49,7 +49,7 @@ public class ResourcesServiceImpl implements ResourcesService {
         String key = helper.buildMinioKey(userId, path);
         boolean isRoot = path.equals("/");
 
-        if (!isRoot && !storageClient.exist(key)) {
+        if (!isRoot && !storageClient.isExist(key)) {
             throw new ResourceNotFoundException("failed to get list directory: directory does not exist");
         }
 
@@ -66,7 +66,7 @@ public class ResourcesServiceImpl implements ResourcesService {
     public ResourceResponseDto getResourceInfo(Long userId, String path) {
         String key = helper.buildMinioKey(userId, path);
 
-        if (!storageClient.exist(key)) {
+        if (!storageClient.isExist(key)) {
             throw new ResourceNotFoundException("Failed to get info about resource: resource not found");
         }
 
