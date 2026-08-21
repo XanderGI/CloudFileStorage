@@ -26,4 +26,14 @@ public class ResourceController {
 
         return ResponseEntity.ok(dto);
     }
+
+    @DeleteMapping
+    public ResponseEntity<Void> deleteResource(
+            @Pattern(regexp = "^(/|.*[^/].*/?)$", message = "Resource path must be non-empty and end with /") @RequestParam String path,
+            @AuthenticationPrincipal SecurityUser currentUser
+    ) {
+        resourcesService.deleteResource(currentUser.getId(), path);
+
+        return ResponseEntity.noContent().build();
+    }
 }
