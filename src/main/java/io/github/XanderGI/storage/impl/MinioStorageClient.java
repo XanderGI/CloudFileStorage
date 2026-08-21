@@ -7,6 +7,8 @@ import io.github.XanderGI.storage.StorageObjectInfo;
 import io.minio.*;
 import io.minio.errors.ErrorResponseException;
 import io.minio.errors.MinioException;
+import io.minio.messages.DeleteRequest;
+import io.minio.messages.DeleteResult;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -102,7 +104,36 @@ public class MinioStorageClient implements StorageClient {
 
     @Override
     public void removeObject(String key) {
+        try {
+             client.removeObject(
+                     RemoveObjectArgs.builder()
+                             .bucket(bucketName)
+                             .object(key)
+                             .build()
+             );
+        } catch (MinioException e) {
+            throw new MinioStorageException("Failed to delete resource", e);
+        }
+    }
 
+    @Override
+    public void removeObjects(List<String> keys) {
+        if (keys.isEmpty()) {
+            return;
+        }
+
+        Iterable<Result<DeleteResult.Error>> results = client.removeObjects(
+                RemoveObjectsArgs.builder()
+                        .bucket(bucketName)
+                        .objects(keys.stream()
+                                .map(DeleteRequest.Object::new)
+                                .toList()
+                        )
+                        .build()
+        );
+
+        StreamSupport.stream(results.spliterator(), false)
+                .forEach(this::unwrapResult);
     }
 
     @Override
@@ -120,11 +151,11 @@ public class MinioStorageClient implements StorageClient {
         );
     }
 
-    private Item unwrapResult(Result<Item> itemResult) {
+    private <T> T unwrapResult(Result<T> result) {
         try {
-            return itemResult.get();
+            return result.get();
         } catch (MinioException e) {
-            throw new MinioStorageException("failed to get list objects", e);
+            throw new MinioStorageException("Failed to process storage result", e);
         }
     }
 
