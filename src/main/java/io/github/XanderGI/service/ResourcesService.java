@@ -10,4 +10,6 @@ public interface ResourcesService {
     List<ResourceResponseDto> listDirectory(Long userId, String path);
 
     ResourceResponseDto getResourceInfo(Long userId, String path);
+
+    void deleteResource(Long userId, String path);
 }

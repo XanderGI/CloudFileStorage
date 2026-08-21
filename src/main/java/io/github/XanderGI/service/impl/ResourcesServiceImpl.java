@@ -76,6 +76,25 @@ public class ResourcesServiceImpl implements ResourcesService {
         return toDto(userId, key, objectInfo.size(), isDirectory);
     }
 
+    @Override
+    public void deleteResource(Long userId, String path) {
+        String rootKey = helper.buildMinioKey(userId, path);
+
+        if (!storageClient.isExist(rootKey)) {
+            throw new ResourceNotFoundException("Failed to delete resource: resource not found");
+        }
+
+        if (helper.isFolder(rootKey)) {
+            List<String> nestedKeys = storageClient.listObjects(rootKey, true).stream()
+                    .map(StorageItem::key)
+                    .toList();
+
+            storageClient.removeObjects(nestedKeys);
+        }
+
+        storageClient.removeObject(rootKey);
+    }
+
     private ResourceResponseDto toDto(Long userId, String key, Long size, boolean isDirectory) {
         return new ResourceResponseDto(
                 helper.getContextPathFromKey(userId, key),
