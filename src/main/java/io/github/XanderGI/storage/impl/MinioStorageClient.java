@@ -12,7 +12,9 @@ import io.minio.messages.DeleteResult;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaTypeFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MimeType;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -44,8 +46,23 @@ public class MinioStorageClient implements StorageClient {
     }
 
     @Override
-    public StorageItem upload(String key, InputStream inputStream) {
-        return null;
+    public void upload(String key, InputStream inputStream, long size, String filename) {
+        String contentType = MediaTypeFactory.getMediaType(filename)
+                .map(MimeType::toString)
+                .orElse("application/octet-stream");
+        try {
+            client.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(key)
+                            .stream(inputStream, size, -1L)
+                            .contentType(contentType)
+                            .build()
+            );
+
+        } catch (MinioException e) {
+            throw new MinioStorageException("Failed to upload resource", e);
+        }
     }
 
     @Override

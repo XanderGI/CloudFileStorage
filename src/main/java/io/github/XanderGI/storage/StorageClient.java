@@ -6,7 +6,7 @@ import java.util.List;
 public interface StorageClient {
     void createFolder(String key);
 
-    StorageItem upload(String key, InputStream inputStream);
+    void upload(String key, InputStream inputStream, long size, String filename);
 
     InputStream getObject(String key);
 
