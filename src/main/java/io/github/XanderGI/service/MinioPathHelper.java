@@ -5,7 +5,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @Component
 public class MinioPathHelper {
@@ -57,6 +60,29 @@ public class MinioPathHelper {
         String extractPath = extractFilePath(userId, key);
 
         return getContextPath(extractPath);
+    }
+
+    public String buildFilePath(String directoryPath, String originalFilename) {
+        if (directoryPath == null || directoryPath.isBlank()) {
+            throw new IllegalArgumentException("path must be not null or empty");
+        }
+
+        String contextPath = directoryPath.concat(originalFilename);
+
+        return normalizeAndSanitizePath(contextPath);
+    }
+
+    public List<String> splitContextPath(String contextPath) {
+        Path path = Path.of(contextPath);
+        List<String> accumulated = new ArrayList<>();
+
+        while (path != null && path.getFileName() != null) {
+            String segment = path.toString().replace("\\", KEY_DELIMITER);
+            accumulated.add(0, segment.concat(KEY_DELIMITER));
+            path = path.getParent();
+        }
+
+        return accumulated;
     }
 
     private String extractFilePath(Long userId, String path) {

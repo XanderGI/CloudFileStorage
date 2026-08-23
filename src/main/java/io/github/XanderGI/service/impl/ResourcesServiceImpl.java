@@ -2,6 +2,7 @@ package io.github.XanderGI.service.impl;
 
 import io.github.XanderGI.dto.ResourceResponseDto;
 import io.github.XanderGI.dto.ResourceType;
+import io.github.XanderGI.dto.UploadFileItem;
 import io.github.XanderGI.exception.ResourceAlreadyExistsException;
 import io.github.XanderGI.exception.ResourceNotFoundException;
 import io.github.XanderGI.service.MinioPathHelper;
@@ -13,7 +14,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 //todo: добавить mapper для dto
 
@@ -93,6 +97,49 @@ public class ResourcesServiceImpl implements ResourcesService {
         }
 
         storageClient.removeObject(rootKey);
+    }
+
+    @Override
+    public List<ResourceResponseDto> uploadFiles(Long userId, String path, List<UploadFileItem> files) {
+        List<ResourceResponseDto> responseList = new ArrayList<>();
+        Set<String> keysInBatch = new HashSet<>();
+
+        for (UploadFileItem file : files) {
+            String fileName = file.originalFilename();
+            String filePath = helper.buildFilePath(path, fileName);
+            String fileKey = helper.buildMinioKey(userId, filePath);
+
+            if (!keysInBatch.add(fileKey)) {
+                throw new ResourceAlreadyExistsException("Failed to upload file: duplicate file \"%s\" in request".formatted(fileName));
+            }
+
+            if (storageClient.isExist(fileKey)) {
+                throw new ResourceAlreadyExistsException("Failed to upload file: resource \"%s\" already exist".formatted(fileName));
+            }
+        }
+
+        for (UploadFileItem file : files) {
+            String filePath = helper.buildFilePath(path, file.originalFilename());
+            String fileKey = helper.buildMinioKey(userId, filePath);
+            String fileContextPath = helper.getContextPath(filePath);
+            List<String> pathSegments = helper.splitContextPath(fileContextPath);
+
+            for (String segment : pathSegments) {
+                String segmentKey = helper.buildMinioKey(userId, segment);
+
+                if (!storageClient.isExist(segmentKey)) {
+                    storageClient.createFolder(segmentKey);
+
+                    responseList.add(0, toDto(userId, segmentKey, null, true));
+                }
+            }
+
+            storageClient.upload(fileKey, file.inputStream(), file.size(), file.originalFilename());
+
+            responseList.add(0, toDto(userId, fileKey, file.size(), false));
+        }
+
+        return responseList;
     }
 
     private ResourceResponseDto toDto(Long userId, String key, Long size, boolean isDirectory) {
