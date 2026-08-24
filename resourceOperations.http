@@ -348,3 +348,42 @@ Content-Disposition: form-data; name="files"; filename="TZ.txt"
 
 < src/test/resources/test-files/TZ.md
 --boundary--
+
+# search resources
+
+## 200
+
+### search existing file by full name
+GET http://localhost:8080/api/resource/search?query=TZ.md
+
+### search by partial name (substring match)
+GET http://localhost:8080/api/resource/search?query=TZ
+
+### search case-insensitive (uppercase query)
+GET http://localhost:8080/api/resource/search?query=tz
+
+### search folder by name
+GET http://localhost:8080/api/resource/search?query=documents
+
+### search by partial folder name
+GET http://localhost:8080/api/resource/search?query=doc
+
+### search with no matches - return empty list
+GET http://localhost:8080/api/resource/search?query=xyznotexist123
+
+### search with single character
+GET http://localhost:8080/api/resource/search?query=a
+
+### search file with extension only
+GET http://localhost:8080/api/resource/search?query=.txt
+
+## 400
+
+### missing query param
+GET http://localhost:8080/api/resource/search
+
+### empty query param
+GET http://localhost:8080/api/resource/search?query=
+
+### blank query (spaces only)
+GET http://localhost:8080/api/resource/search?query=%20%20
