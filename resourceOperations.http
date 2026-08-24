@@ -80,32 +80,54 @@ GET http://localhost:8080/api/resource?path=user-2-files/
 
 ### delete existing empty folder
 POST http://localhost:8080/api/directory?path=to-delete/
+
 ###
 DELETE http://localhost:8080/api/resource?path=to-delete/
 
-### delete existing file (need implements upload file operation!!!)
+### delete existing file
 POST http://localhost:8080/api/directory?path=to-delete/
+
 ###
-#POST http://localhost:8080/api/resource?path=to-delete/file.txt
+POST http://localhost:8080/api/resource?path=to-delete/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="TZ.md"
+
+< src/test/resources/test-files/TZ.md
+--boundary--
+
 ###
-DELETE http://localhost:8080/api/resource?path=to-delete/file.txt
+DELETE http://localhost:8080/api/resource?path=to-delete/TZ.md
 
 ### delete folder with nested content (recursive)
 POST http://localhost:8080/api/directory?path=deep/
+
 ###
 POST http://localhost:8080/api/directory?path=deep/nested/
+
 ###
 POST http://localhost:8080/api/directory?path=deep/nested/inner/
+
 ###
 DELETE http://localhost:8080/api/resource?path=deep/
 
 ### single-letter folder
 POST http://localhost:8080/api/directory?path=a/
+
 ###
 DELETE http://localhost:8080/api/resource?path=a/
 
-### file with dash and underscore (need implements upload file operation!!!)
-#POST http://localhost:8080/api/resource?path=my-files_backup.txt
+### file with dash and underscore
+POST http://localhost:8080/api/resource?path=/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="my-files_backup.txt"
+
+< src/test/resources/test-files/my-files_backup.txt
+--boundary--
+
 ###
 DELETE http://localhost:8080/api/resource?path=my-files_backup.txt
 
@@ -150,24 +172,179 @@ DELETE http://localhost:8080/api/resource?path=user-2-files/
 
 ### delete empty folder
 POST http://localhost:8080/api/directory?path=empty-folder/
+
 ###
 DELETE http://localhost:8080/api/resource?path=empty-folder/
 
 ### double slash
 POST http://localhost:8080/api/directory?path=documents/
+
 ###
 POST http://localhost:8080/api/directory?path=documents/work/
+
 ###
 DELETE http://localhost:8080/api/resource?path=documents//work/
 
-### try delete .hidden file (need implements upload file operation!!!)
-#POST http://localhost:8080/api/resource?path=.hidden
+### try delete .hidden directory
+POST http://localhost:8080/api/directory?path=.hidden/
+
 ###
-DELETE http://localhost:8080/api/resource?path=.hidden
+DELETE http://localhost:8080/api/resource?path=.hidden/
 
 ### retry delete directory - 204 and 404
 POST http://localhost:8080/api/directory?path=once/
+
 ###
 DELETE http://localhost:8080/api/resource?path=once/
+
 ###
 DELETE http://localhost:8080/api/resource?path=once/
+
+# upload files
+
+## 201
+
+### upload single file to root
+POST http://localhost:8080/api/resource?path=/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="TZ.md"
+
+< src/test/resources/test-files/TZ.md
+--boundary--
+
+### upload file with subdirectory in filename
+POST http://localhost:8080/api/resource?path=documents/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="subfolder/TZ.md"
+
+< src/test/resources/test-files/TZ.md
+--boundary--
+
+### upload multiple files at once
+POST http://localhost:8080/api/resource?path=documents/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="TZ.md"
+
+< src/test/resources/test-files/TZ.md
+--boundary
+Content-Disposition: form-data; name="files"; filename="deep_field.jpg"
+
+< src/test/resources/test-files/deep_field.jpg
+--boundary--
+
+### upload multiple files with different subfolder
+POST http://localhost:8080/api/resource?path=documents/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="a/b/TZ.md"
+
+< src/test/resources/test-files/TZ.md
+--boundary
+Content-Disposition: form-data; name="files"; filename="a/b/c/deep_field.jpg"
+
+< src/test/resources/test-files/deep_field.jpg
+--boundary--
+
+## 400
+
+### path does not end with slash
+POST http://localhost:8080/api/resource?path=documents/file.txt
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="TZ.md"
+
+< src/test/resources/test-files/TZ.md
+--boundary--
+
+### missing path param
+POST http://localhost:8080/api/resource
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="TZ.md"
+
+< src/test/resources/test-files/TZ.md
+--boundary--
+
+## 409
+
+### upload duplicate file
+POST http://localhost:8080/api/resource?path=documents/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="TZ.md"
+
+< src/test/resources/test-files/TZ.md
+--boundary--
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="TZ.md"
+
+< src/test/resources/test-files/TZ.md
+--boundary--
+
+## edge cases
+
+### upload to non-existent target folder - 201
+POST http://localhost:8080/api/resource?path=brand-new-folder/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="TZ.md"
+
+< src/test/resources/test-files/TZ.md
+--boundary--
+
+### filename with path traversal - 400
+POST http://localhost:8080/api/resource?path=documents/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="../../etc/passwd"
+
+< src/test/resources/test-files/TZ.md
+--boundary--
+
+### two files with same destination in one batch (duplicate in batch) - 409
+POST http://localhost:8080/api/resource?path=documents/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="same.txt"
+
+< src/test/resources/test-files/TZ.md
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="same.txt"
+
+< src/test/resources/test-files/TZ.md
+--boundary--
+
+### upload deeply nested file - 201
+POST http://localhost:8080/api/resource?path=a/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="b/c/d/TZ.md"
+
+< src/test/resources/test-files/TZ.md
+--boundary--
+
+### double slash in path param - 201
+POST http://localhost:8080/api/resource?path=documents//
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="TZ.txt"
+
+< src/test/resources/test-files/TZ.md
+--boundary--
