@@ -142,6 +142,22 @@ public class ResourcesServiceImpl implements ResourcesService {
         return responseList;
     }
 
+    @Override
+    public List<ResourceResponseDto> search(Long userId, String query) {
+        String rootKey = helper.buildMinioKey(userId, "");
+        String lowerQuery = query.toLowerCase();
+
+        List<StorageItem> items = storageClient.listObjects(rootKey, true);
+
+        return items.stream()
+                .filter(item -> {
+                    String fileName = helper.getName(item.key()).toLowerCase();
+                    return fileName.contains(lowerQuery);
+                })
+                .map(item -> toDto(userId, item.key(), item.size(), item.isDirectory()))
+                .toList();
+    }
+
     private ResourceResponseDto toDto(Long userId, String key, Long size, boolean isDirectory) {
         return new ResourceResponseDto(
                 helper.getContextPathFromKey(userId, key),

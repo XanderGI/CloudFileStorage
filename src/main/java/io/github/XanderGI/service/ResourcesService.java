@@ -15,4 +15,6 @@ public interface ResourcesService {
     void deleteResource(Long userId, String path);
 
     List<ResourceResponseDto> uploadFiles(Long userId, String path, List<UploadFileItem> files);
+
+    List<ResourceResponseDto> search(Long userId, String query);
 }
