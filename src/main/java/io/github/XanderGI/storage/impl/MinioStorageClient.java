@@ -177,7 +177,7 @@ public class MinioStorageClient implements StorageClient {
     }
 
     private StorageItem toStorageItem(Item item) {
-        boolean isDirectory = item.isDir();
+        boolean isDirectory = item.objectName().endsWith("/");
 
         return new StorageItem(
                 item.objectName(),
