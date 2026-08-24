@@ -4,6 +4,7 @@ import io.github.XanderGI.dto.ResourceResponseDto;
 import io.github.XanderGI.dto.UploadFileItem;
 import io.github.XanderGI.security.SecurityUser;
 import io.github.XanderGI.service.ResourcesService;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
@@ -73,4 +74,15 @@ public class ResourceController {
                 .status(HttpStatus.CREATED)
                 .body(responseList);
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<ResourceResponseDto>> search(
+            @NotBlank(message = "query must not be blank") @RequestParam String query,
+            @AuthenticationPrincipal SecurityUser currentUser
+    ) {
+        List<ResourceResponseDto> responseList = resourcesService.search(currentUser.getId(), query);
+
+        return ResponseEntity.ok(responseList);
+    }
+
 }
