@@ -18,7 +18,7 @@ public class MinioPathHelper {
     @Value("${minio.prefix.template}")
     private String templatePrefix;
 
-    public String buildRootPrefix(Long userId) {
+    private String buildRootPrefix(Long userId) {
         return templatePrefix.formatted(userId);
     }
 
