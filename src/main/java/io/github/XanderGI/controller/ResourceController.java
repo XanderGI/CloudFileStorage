@@ -49,7 +49,7 @@ public class ResourceController {
     }
 
     @PostMapping
-    public ResponseEntity<List<ResourceResponseDto>> uploadFiles(
+    public ResponseEntity<List<ResourceResponseDto>> uploadResources(
             @Pattern(regexp = "^(/|.*[^/].*/)$", message = "Resource path must be non-empty and end with /") @RequestParam String path,
             @NotEmpty(message = "Files list cannot be empty") @RequestParam List<MultipartFile> files,
             @AuthenticationPrincipal SecurityUser currentUser
@@ -68,7 +68,7 @@ public class ResourceController {
             }
         }
 
-        List<ResourceResponseDto> responseList = resourcesService.uploadFiles(currentUser.getId(), path, fileItems);
+        List<ResourceResponseDto> responseList = resourcesService.uploadResources(currentUser.getId(), path, fileItems);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -83,6 +83,17 @@ public class ResourceController {
         List<ResourceResponseDto> responseList = resourcesService.search(currentUser.getId(), query);
 
         return ResponseEntity.ok(responseList);
+    }
+
+    @PostMapping("/move")
+    public ResponseEntity<ResourceResponseDto> moveResource(
+            @Pattern(regexp = "^(.*[^/].*/?)$", message = "Path must not be root and must be a valid resource path") @RequestParam String from,
+            @Pattern(regexp = "^(.*[^/].*/?)$", message = "Path must not be root and must be a valid resource path") @RequestParam String to,
+            @AuthenticationPrincipal SecurityUser currentUser
+    ) {
+        ResourceResponseDto response = resourcesService.moveResource(currentUser.getId(), from, to);
+
+        return ResponseEntity.ok(response);
     }
 
 }
