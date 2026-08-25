@@ -122,12 +122,12 @@ public class MinioStorageClient implements StorageClient {
     @Override
     public void removeObject(String key) {
         try {
-             client.removeObject(
-                     RemoveObjectArgs.builder()
-                             .bucket(bucketName)
-                             .object(key)
-                             .build()
-             );
+            client.removeObject(
+                    RemoveObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(key)
+                            .build()
+            );
         } catch (MinioException e) {
             throw new MinioStorageException("Failed to delete resource", e);
         }
@@ -155,7 +155,20 @@ public class MinioStorageClient implements StorageClient {
 
     @Override
     public void copyObject(String fromKey, String toKey) {
-
+        try {
+            client.copyObject(
+                    CopyObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(toKey)
+                            .source(SourceObject.builder()
+                                    .bucket(bucketName)
+                                    .object(fromKey)
+                                    .build())
+                            .build()
+            );
+        } catch (MinioException e) {
+            throw new MinioStorageException("Failed to copy resource", e);
+        }
     }
 
     private Iterable<Result<Item>> fetchRawObjects(String key, boolean isRecursive) {
