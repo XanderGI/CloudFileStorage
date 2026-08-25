@@ -100,7 +100,7 @@ public class ResourcesServiceImpl implements ResourcesService {
     }
 
     @Override
-    public List<ResourceResponseDto> uploadFiles(Long userId, String path, List<UploadFileItem> files) {
+    public List<ResourceResponseDto> uploadResources(Long userId, String path, List<UploadFileItem> files) {
         List<ResourceResponseDto> responseList = new ArrayList<>();
         Set<String> keysInBatch = new HashSet<>();
 
@@ -156,6 +156,69 @@ public class ResourcesServiceImpl implements ResourcesService {
                 })
                 .map(item -> toDto(userId, item.key(), item.size(), item.isDirectory()))
                 .toList();
+    }
+
+    @Override
+    public ResourceResponseDto moveResource(Long userId, String from, String to) {
+        String fromKey = helper.buildMinioKey(userId, from);
+        String toKey = helper.buildMinioKey(userId, to);
+        boolean sourceIsDirectory = helper.isFolder(fromKey);
+
+        if (!storageClient.isExist(fromKey)) {
+            throw new ResourceNotFoundException("failed to move resource: resource not found");
+        }
+
+        if (sourceIsDirectory != helper.isFolder(toKey)) {
+            throw new IllegalArgumentException("Incompatible source and destination types for move operation");
+        }
+
+        if (storageClient.isExist(toKey)) {
+            throw new ResourceAlreadyExistsException("failed to move resource: resource to target path already exist");
+        }
+
+        String contextPathTo = helper.getContextPathFromKey(userId, toKey);
+        String contextPathToKey = helper.buildMinioKey(userId, contextPathTo);
+
+        if (!contextPathTo.equals("/") && !storageClient.isExist(contextPathToKey)) {
+            throw new ResourceNotFoundException("failed to move resource: context path to target not exist");
+        }
+
+        if (sourceIsDirectory) {
+            return moveDirectory(userId, fromKey, toKey);
+        } else {
+            return moveFile(userId, fromKey, toKey);
+        }
+    }
+
+    private ResourceResponseDto moveDirectory(Long userId, String fromKey, String toKey) {
+        List<StorageItem> items = storageClient.listObjects(fromKey, true);
+
+        storageClient.createFolder(toKey);
+
+        for (StorageItem item : items) {
+            String fileKey = item.key();
+            String suffix = fileKey.substring(fromKey.length());
+            String targetKey = toKey.concat(suffix);
+
+            storageClient.copyObject(fileKey, targetKey);
+        }
+
+        storageClient.removeObjects(items.stream()
+                .map(StorageItem::key)
+                .toList()
+        );
+        storageClient.removeObject(fromKey);
+
+        return toDto(userId, toKey, null, true);
+    }
+
+    private ResourceResponseDto moveFile(Long userId, String fromKey, String toKey) {
+        Long size = storageClient.statObject(fromKey).size();
+
+        storageClient.copyObject(fromKey, toKey);
+        storageClient.removeObject(fromKey);
+
+        return toDto(userId, toKey, size, false);
     }
 
     private ResourceResponseDto toDto(Long userId, String key, Long size, boolean isDirectory) {
