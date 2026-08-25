@@ -94,7 +94,7 @@ Content-Type: multipart/form-data; boundary=boundary
 --boundary
 Content-Disposition: form-data; name="files"; filename="TZ.md"
 
-< src/test/resources/test-files/TZ.md
+< ../src/test/resources/test-files/TZ.md
 --boundary--
 
 ###
@@ -125,7 +125,7 @@ Content-Type: multipart/form-data; boundary=boundary
 --boundary
 Content-Disposition: form-data; name="files"; filename="my-files_backup.txt"
 
-< src/test/resources/test-files/my-files_backup.txt
+< ../src/test/resources/test-files/my-files_backup.txt
 --boundary--
 
 ###
@@ -211,7 +211,7 @@ Content-Type: multipart/form-data; boundary=boundary
 --boundary
 Content-Disposition: form-data; name="files"; filename="TZ.md"
 
-< src/test/resources/test-files/TZ.md
+< ../src/test/resources/test-files/TZ.md
 --boundary--
 
 ### upload file with subdirectory in filename
@@ -221,7 +221,7 @@ Content-Type: multipart/form-data; boundary=boundary
 --boundary
 Content-Disposition: form-data; name="files"; filename="subfolder/TZ.md"
 
-< src/test/resources/test-files/TZ.md
+< ../src/test/resources/test-files/TZ.md
 --boundary--
 
 ### upload multiple files at once
@@ -231,11 +231,11 @@ Content-Type: multipart/form-data; boundary=boundary
 --boundary
 Content-Disposition: form-data; name="files"; filename="TZ.md"
 
-< src/test/resources/test-files/TZ.md
+< ../src/test/resources/test-files/TZ.md
 --boundary
 Content-Disposition: form-data; name="files"; filename="deep_field.jpg"
 
-< src/test/resources/test-files/deep_field.jpg
+< ../src/test/resources/test-files/deep_field.jpg
 --boundary--
 
 ### upload multiple files with different subfolder
@@ -245,11 +245,11 @@ Content-Type: multipart/form-data; boundary=boundary
 --boundary
 Content-Disposition: form-data; name="files"; filename="a/b/TZ.md"
 
-< src/test/resources/test-files/TZ.md
+< ../src/test/resources/test-files/TZ.md
 --boundary
 Content-Disposition: form-data; name="files"; filename="a/b/c/deep_field.jpg"
 
-< src/test/resources/test-files/deep_field.jpg
+< ../src/test/resources/test-files/deep_field.jpg
 --boundary--
 
 ## 400
@@ -261,7 +261,7 @@ Content-Type: multipart/form-data; boundary=boundary
 --boundary
 Content-Disposition: form-data; name="files"; filename="TZ.md"
 
-< src/test/resources/test-files/TZ.md
+< ../src/test/resources/test-files/TZ.md
 --boundary--
 
 ### missing path param
@@ -271,7 +271,7 @@ Content-Type: multipart/form-data; boundary=boundary
 --boundary
 Content-Disposition: form-data; name="files"; filename="TZ.md"
 
-< src/test/resources/test-files/TZ.md
+< ../src/test/resources/test-files/TZ.md
 --boundary--
 
 ## 409
@@ -283,13 +283,13 @@ Content-Type: multipart/form-data; boundary=boundary
 --boundary
 Content-Disposition: form-data; name="files"; filename="TZ.md"
 
-< src/test/resources/test-files/TZ.md
+< ../src/test/resources/test-files/TZ.md
 --boundary--
 
 --boundary
 Content-Disposition: form-data; name="files"; filename="TZ.md"
 
-< src/test/resources/test-files/TZ.md
+< ../src/test/resources/test-files/TZ.md
 --boundary--
 
 ## edge cases
@@ -301,7 +301,7 @@ Content-Type: multipart/form-data; boundary=boundary
 --boundary
 Content-Disposition: form-data; name="files"; filename="TZ.md"
 
-< src/test/resources/test-files/TZ.md
+< ../src/test/resources/test-files/TZ.md
 --boundary--
 
 ### filename with path traversal - 400
@@ -311,7 +311,7 @@ Content-Type: multipart/form-data; boundary=boundary
 --boundary
 Content-Disposition: form-data; name="files"; filename="../../etc/passwd"
 
-< src/test/resources/test-files/TZ.md
+< ../src/test/resources/test-files/TZ.md
 --boundary--
 
 ### two files with same destination in one batch (duplicate in batch) - 409
@@ -321,12 +321,12 @@ Content-Type: multipart/form-data; boundary=boundary
 --boundary
 Content-Disposition: form-data; name="files"; filename="same.txt"
 
-< src/test/resources/test-files/TZ.md
+< ../src/test/resources/test-files/TZ.md
 
 --boundary
 Content-Disposition: form-data; name="files"; filename="same.txt"
 
-< src/test/resources/test-files/TZ.md
+< ../src/test/resources/test-files/TZ.md
 --boundary--
 
 ### upload deeply nested file - 201
@@ -336,7 +336,7 @@ Content-Type: multipart/form-data; boundary=boundary
 --boundary
 Content-Disposition: form-data; name="files"; filename="b/c/d/TZ.md"
 
-< src/test/resources/test-files/TZ.md
+< ../src/test/resources/test-files/TZ.md
 --boundary--
 
 ### double slash in path param - 201
@@ -346,7 +346,7 @@ Content-Type: multipart/form-data; boundary=boundary
 --boundary
 Content-Disposition: form-data; name="files"; filename="TZ.txt"
 
-< src/test/resources/test-files/TZ.md
+< ../src/test/resources/test-files/TZ.md
 --boundary--
 
 # search resources
@@ -387,3 +387,245 @@ GET http://localhost:8080/api/resource/search?query=
 
 ### blank query (spaces only)
 GET http://localhost:8080/api/resource/search?query=%20%20
+
+# move / rename resource
+
+## 200
+
+###
+POST http://localhost:8080/api/resource?path=/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="report.txt"
+
+< ../src/test/resources/test-files/TZ.md
+--boundary--
+
+### rename file in root (only name changes)
+POST http://localhost:8080/api/resource/move?from=report.txt&to=report_v2.txt
+
+###
+POST http://localhost:8080/api/directory?path=source/
+
+###
+POST http://localhost:8080/api/directory?path=archive/
+
+### move folder into another folder
+POST http://localhost:8080/api/resource/move?from=source/&to=archive/source/
+
+###
+POST http://localhost:8080/api/directory?path=source/
+
+###
+POST http://localhost:8080/api/resource?path=source/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="data.txt"
+
+< ../src/test/resources/test-files/TZ.md
+--boundary--
+
+### move file from one folder to another
+POST http://localhost:8080/api/resource/move?from=source/data.txt&to=archive/data.txt
+
+###
+POST http://localhost:8080/api/directory?path=a/
+
+###
+POST http://localhost:8080/api/directory?path=a/b/
+
+###
+POST http://localhost:8080/api/directory?path=a/b/c/
+
+###
+POST http://localhost:8080/api/resource?path=a/b/c/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="deep.txt"
+
+< ../src/test/resources/test-files/TZ.md
+--boundary--
+
+### rename deeply nested folder — nested content must be preserved
+POST http://localhost:8080/api/resource/move?from=a/b/&to=a/b_renamed/
+
+###
+POST http://localhost:8080/api/directory?path=my-files_backup/
+
+### rename folder with dashes and underscores
+POST http://localhost:8080/api/resource/move?from=my-files_backup/&to=my-files_v2/
+
+###
+POST http://localhost:8080/api/directory?path=inbox/
+
+###
+POST http://localhost:8080/api/resource?path=inbox/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="note.txt"
+
+< ../src/test/resources/test-files/TZ.md
+--boundary--
+
+### move file from nested folder up to root
+POST http://localhost:8080/api/resource/move?from=inbox/note.txt&to=note.txt
+
+##  400
+
+### from param is missing
+POST http://localhost:8080/api/resource/move?to=archive/report.txt
+
+### to param is missing
+POST http://localhost:8080/api/resource/move?from=report.txt
+
+### both params missing
+POST http://localhost:8080/api/resource/move
+
+### from is root "/"
+POST http://localhost:8080/api/resource/move?from=/&to=archive/
+
+### to is root "/"
+POST http://localhost:8080/api/resource/move?from=docs/&to=/
+
+### from is empty string
+POST http://localhost:8080/api/resource/move?from=&to=archive/
+
+### to is empty string
+POST http://localhost:8080/api/resource/move?from=docs/&to=
+
+### path traversal in from
+POST http://localhost:8080/api/resource/move?from=../etc/passwd&to=safe.txt
+
+### path traversal in to
+POST http://localhost:8080/api/resource/move?from=docs/report.txt&to=../etc/pass.txt
+
+### only slashes in from
+POST http://localhost:8080/api/resource/move?from=///&to=archive/
+
+### type mismatch: from=folder/, to=file (no trailing slash) — 400
+POST http://localhost:8080/api/directory?path=mismatch-folder/
+
+###
+POST http://localhost:8080/api/resource?path=/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="mismatch-file.txt"
+
+< ../src/test/resources/test-files/TZ.md
+--boundary--
+
+### folder -> file path: type mismatch
+POST http://localhost:8080/api/resource/move?from=mismatch-folder/&to=mismatch-file.txt
+
+### file -> folder path: type mismatch
+POST http://localhost:8080/api/resource/move?from=mismatch-file.txt&to=mismatch-folder/
+
+## 404
+
+### from file does not exist
+POST http://localhost:8080/api/resource/move?from=ghost.txt&to=ghost_v2.txt
+
+### from folder does not exist
+POST http://localhost:8080/api/resource/move?from=ghost/&to=ghost_renamed/
+
+### parent path of to does not exist (one level)
+POST http://localhost:8080/api/resource/move?from=note.txt&to=non-existent-parent/note.txt
+
+### parent path of to does not exist (deep hierarchy)
+POST http://localhost:8080/api/resource/move?from=note.txt&to=x/y/z/note.txt
+
+## 409
+
+###
+POST http://localhost:8080/api/resource?path=/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="original.txt"
+
+< ../src/test/resources/test-files/TZ.md
+--boundary--
+
+###
+POST http://localhost:8080/api/resource?path=/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="already-exists.txt"
+
+< ../src/test/resources/test-files/TZ.md
+--boundary--
+
+### move file to path where another file already sits → 409
+POST http://localhost:8080/api/resource/move?from=original.txt&to=already-exists.txt
+
+###
+POST http://localhost:8080/api/directory?path=folder-a/
+
+###
+POST http://localhost:8080/api/directory?path=folder-b/
+
+### move folder to path where another folder already sits → 409
+POST http://localhost:8080/api/resource/move?from=folder-a/&to=folder-b/
+
+## edge cases
+
+### [setup] deep folder tree for recursive move verification
+POST http://localhost:8080/api/directory?path=tree/
+
+###
+POST http://localhost:8080/api/directory?path=tree/level1/
+
+###
+POST http://localhost:8080/api/directory?path=tree/level1/level2/
+
+###
+POST http://localhost:8080/api/resource?path=tree/level1/level2/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="leaf.txt"
+
+< ../src/test/resources/test-files/TZ.md
+--boundary--
+
+###
+POST http://localhost:8080/api/directory?path=dest/
+
+### move folder with deep nested structure - 200
+POST http://localhost:8080/api/resource/move?from=tree/&to=dest/tree/
+
+### verify nested file is reachable at NEW location - 200
+GET http://localhost:8080/api/resource?path=dest/tree/level1/level2/leaf.txt
+
+### verify OLD root folder no longer exists — 404
+GET http://localhost:8080/api/resource?path=tree/
+
+###
+POST http://localhost:8080/api/directory?path=empty-dir/
+
+### move an empty folder (no content, removeObjects called with empty list) — 200
+POST http://localhost:8080/api/resource/move?from=empty-dir/&to=empty-dir-renamed/
+
+### move with double slash in path — 200
+POST http://localhost:8080/api/resource/move?from=archive//data.txt&to=archive/data_v3.txt
+
+### move-then-move-back (idempotency round-trip) — 200
+POST http://localhost:8080/api/directory?path=ping/
+
+###
+POST http://localhost:8080/api/resource/move?from=ping/&to=pong/
+
+###
+POST http://localhost:8080/api/resource/move?from=pong/&to=ping/
+
+### URL-encoded space in target name — 200
+POST http://localhost:8080/api/resource/move?from=note.txt&to=my%20note.txt
+
+### attempt to access another user's resource — 404
+POST http://localhost:8080/api/resource/move?from=user-3-files/secret.txt&to=stolen.txt
