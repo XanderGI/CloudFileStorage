@@ -629,3 +629,158 @@ POST http://localhost:8080/api/resource/move?from=note.txt&to=my%20note.txt
 
 ### attempt to access another user's resource — 404
 POST http://localhost:8080/api/resource/move?from=user-3-files/secret.txt&to=stolen.txt
+
+# download resource
+
+## 200
+
+###
+POST http://localhost:8080/api/resource?path=/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="TZ.md"
+
+< ../src/test/resources/test-files/TZ.md
+--boundary--
+
+### download file from root — check: Content-Disposition header contains filename="TZ.md"
+GET http://localhost:8080/api/resource/download?path=TZ.md
+
+>> ../tmp/downloaded-TZ.md
+
+###
+POST http://localhost:8080/api/directory?path=documents/
+
+###
+POST http://localhost:8080/api/resource?path=documents/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="report.txt"
+
+< ../src/test/resources/test-files/TZ.md
+--boundary--
+
+### download file from nested folder
+GET http://localhost:8080/api/resource/download?path=documents/report.txt
+
+>> ../tmp/downloaded-report.txt
+
+### download folder as zip — Content-Disposition must contain filename="documents.zip"
+GET http://localhost:8080/api/resource/download?path=documents/
+
+>> ../tmp/documents.zip
+
+###
+POST http://localhost:8080/api/directory?path=archive/
+
+###
+POST http://localhost:8080/api/directory?path=archive/2024/
+
+###
+POST http://localhost:8080/api/resource?path=archive/2024/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="data.txt"
+
+< ../src/test/resources/test-files/TZ.md
+--boundary--
+
+### download folder with deep nested structure — zip must preserve hierarchy (entry: 2024/data.txt)
+GET http://localhost:8080/api/resource/download?path=archive/
+
+>> ../tmp/archive.zip
+
+###
+POST http://localhost:8080/api/resource?path=/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="deep_field.jpg"
+
+< ../src/test/resources/test-files/deep_field.jpg
+--boundary--
+
+### download binary file — bytes must match original
+GET http://localhost:8080/api/resource/download?path=deep_field.jpg
+
+>> ../tmp/downloaded-deep_field.jpg
+
+## 400
+
+### missing path param
+GET http://localhost:8080/api/resource/download
+
+### empty path param
+GET http://localhost:8080/api/resource/download?path=
+
+### only slashes
+GET http://localhost:8080/api/resource/download?path=///
+
+### path traversal in root
+GET http://localhost:8080/api/resource/download?path=../etc/passwd
+
+### inner path traversal
+GET http://localhost:8080/api/resource/download?path=documents/../../etc/passwd
+
+### root path "/"
+GET http://localhost:8080/api/resource/download?path=/
+
+## 404
+
+### file does not exist
+GET http://localhost:8080/api/resource/download?path=ghost.txt
+
+### folder does not exist
+GET http://localhost:8080/api/resource/download?path=ghost/
+
+### deeply nested path does not exist
+GET http://localhost:8080/api/resource/download?path=a/b/c/d.txt
+
+### alien resource
+GET http://localhost:8080/api/resource/download?path=user-2-files/secret.txt
+
+## edge cases
+
+###
+POST http://localhost:8080/api/directory?path=empty-folder/
+
+### download empty folder — zip must be VALID but contain zero entries
+GET http://localhost:8080/api/resource/download?path=empty-folder/
+
+>> ../tmp/empty-folder.zip
+
+###
+POST http://localhost:8080/api/directory?path=multi/
+
+###
+POST http://localhost:8080/api/resource?path=multi/
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="files"; filename="a.txt"
+
+< ../src/test/resources/test-files/TZ.md
+--boundary
+Content-Disposition: form-data; name="files"; filename="b.txt"
+
+< ../src/test/resources/test-files/TZ.md
+--boundary--
+
+### download folder with multiplefiles — zip must contain a.txt and b.txt
+GET http://localhost:8080/api/resource/download?path=multi/
+
+>> ../tmp/multi.zip
+
+### double slash in path — should normalize correctly
+GET http://localhost:8080/api/resource/download?path=documents//report.txt
+
+>> ../tmp/report-doubleslash.txt
+
+###
+POST http://localhost:8080/api/directory?path=myfolder/
+
+### URL-encoded space in path — 404
+GET http://localhost:8080/api/resource/download?path=my%20folder/
