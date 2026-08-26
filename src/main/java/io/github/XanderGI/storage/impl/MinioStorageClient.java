@@ -67,7 +67,16 @@ public class MinioStorageClient implements StorageClient {
 
     @Override
     public InputStream getObject(String key) {
-        return null;
+        try {
+            return client.getObject(
+                    GetObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(key)
+                            .build()
+            );
+        } catch (MinioException e) {
+            throw new MinioStorageException("Failed to download resource", e);
+        }
     }
 
     @Override
