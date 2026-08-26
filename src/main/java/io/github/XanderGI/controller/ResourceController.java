@@ -1,5 +1,6 @@
 package io.github.XanderGI.controller;
 
+import io.github.XanderGI.dto.DownloadResult;
 import io.github.XanderGI.dto.ResourceResponseDto;
 import io.github.XanderGI.dto.UploadFileItem;
 import io.github.XanderGI.security.SecurityUser;
@@ -8,14 +9,18 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -96,4 +101,20 @@ public class ResourceController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/download")
+    public ResponseEntity<StreamingResponseBody> downloadResource(
+            @Pattern(regexp = "^(/|.*[^/].*/?)$", message = "Resource path must be non-empty") @RequestParam String path,
+            @AuthenticationPrincipal SecurityUser currentUser
+    ) {
+        DownloadResult content = resourcesService.downloadResource(currentUser.getId(), path);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .headers(httpHeaders -> httpHeaders.setContentDisposition(
+                        ContentDisposition.attachment()
+                                .filename(content.filename(), StandardCharsets.UTF_8)
+                                .build()
+                ))
+                .body(content.resourceStream()::writeTo);
+    }
 }
