@@ -1,5 +1,6 @@
 package io.github.XanderGI.service.impl;
 
+import io.github.XanderGI.dto.DownloadResult;
 import io.github.XanderGI.dto.ResourceResponseDto;
 import io.github.XanderGI.dto.ResourceType;
 import io.github.XanderGI.dto.UploadFileItem;
@@ -14,12 +15,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 //todo: добавить mapper для dto
+//todo: подумать стоит ли пытаться добавить фичу для отображения progress-bar при download
 
 @Slf4j
 @Service
@@ -159,6 +166,33 @@ public class ResourcesServiceImpl implements ResourcesService {
     }
 
     @Override
+    public DownloadResult downloadResource(Long userId, String path) {
+        String key = helper.buildMinioKey(userId, path);
+
+        if (!storageClient.isExist(key)) {
+            throw new ResourceNotFoundException("failed to download resource: resource not found");
+        }
+
+        String fileName = helper.getName(key);
+
+        if (helper.isFolder(key)) {
+            return new DownloadResult(
+                    fileName.concat(".zip"),
+                    outputStream -> buildZip(key, outputStream)
+            );
+        } else {
+            return new DownloadResult(
+                    fileName,
+                    outputStream -> {
+                        try (InputStream inputStream = storageClient.getObject(key)) {
+                            inputStream.transferTo(outputStream);
+                        }
+                    }
+            );
+        }
+    }
+
+    @Override
     public ResourceResponseDto moveResource(Long userId, String from, String to) {
         String fromKey = helper.buildMinioKey(userId, from);
         String toKey = helper.buildMinioKey(userId, to);
@@ -219,6 +253,29 @@ public class ResourcesServiceImpl implements ResourcesService {
         storageClient.removeObject(fromKey);
 
         return toDto(userId, toKey, size, false);
+    }
+
+    private void buildZip(String key, OutputStream outputStream) throws IOException {
+        List<StorageItem> items = storageClient.listObjects(key, true);
+
+        try (ZipOutputStream zipStream = new ZipOutputStream(outputStream)) {
+            for (StorageItem item : items) {
+                String itemKey = item.key();
+
+                if (item.isDirectory()) {
+                    continue;
+                }
+
+                String entryName = itemKey.substring(key.length());
+                zipStream.putNextEntry(new ZipEntry(entryName));
+
+                try (InputStream fileStream = storageClient.getObject(itemKey)) {
+                    fileStream.transferTo(zipStream);
+                }
+
+                zipStream.closeEntry();
+            }
+        }
     }
 
     private ResourceResponseDto toDto(Long userId, String key, Long size, boolean isDirectory) {
