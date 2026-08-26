@@ -1,5 +1,6 @@
 package io.github.XanderGI.service;
 
+import io.github.XanderGI.dto.DownloadResult;
 import io.github.XanderGI.dto.ResourceResponseDto;
 import io.github.XanderGI.dto.UploadFileItem;
 
@@ -19,4 +20,6 @@ public interface ResourcesService {
     List<ResourceResponseDto> search(Long userId, String query);
 
     ResourceResponseDto moveResource(Long userId, String from, String to);
+
+    DownloadResult downloadResource(Long userId, String path);
 }
