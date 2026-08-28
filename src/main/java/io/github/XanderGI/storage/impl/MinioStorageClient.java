@@ -22,6 +22,8 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
+//todo: вынести настройки в properties через @ConfigurationProperties
+
 @Service
 @RequiredArgsConstructor
 public class MinioStorageClient implements StorageClient {
