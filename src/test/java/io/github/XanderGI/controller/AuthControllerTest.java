@@ -1,5 +1,6 @@
 package io.github.XanderGI.controller;
 
+import io.github.XanderGI.controller.impl.AuthController;
 import io.github.XanderGI.dto.UserRequestDto;
 import io.github.XanderGI.exception.UserAlreadyExistException;
 import io.github.XanderGI.security.SecurityConfiguration;

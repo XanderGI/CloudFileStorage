@@ -1,31 +1,32 @@
-package io.github.XanderGI.controller;
+package io.github.XanderGI.controller.impl;
 
+import io.github.XanderGI.controller.DirectoryControllerApi;
 import io.github.XanderGI.dto.ResourceResponseDto;
+import io.github.XanderGI.dto.request.CreateDirectoryRequestDto;
+import io.github.XanderGI.dto.request.DirectoryPathRequestDto;
 import io.github.XanderGI.security.SecurityUser;
 import io.github.XanderGI.service.ResourcesService;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Validated
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/directory")
-public class DirectoryController {
+public class DirectoryController implements DirectoryControllerApi {
     private final ResourcesService resourcesService;
 
     @PostMapping
-    public ResponseEntity<ResourceResponseDto> createFolder(
-            @Pattern(regexp = "^.*[^/].*/$", message = "Directory path must be non-empty and end with /") @RequestParam String path,
+    public ResponseEntity<ResourceResponseDto> createDirectory(
+            @Valid @ModelAttribute CreateDirectoryRequestDto request,
             @AuthenticationPrincipal SecurityUser currentUser
     ) {
-        ResourceResponseDto dto = resourcesService.createDirectory(currentUser.getId(), path);
+        ResourceResponseDto dto = resourcesService.createDirectory(currentUser.getId(), request.path());
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -33,11 +34,11 @@ public class DirectoryController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ResourceResponseDto>> getFolderInfo(
-            @Pattern(regexp = "^(/|.*[^/].*/)$", message = "Directory path must be non-empty and end with /") @RequestParam String path,
+    public ResponseEntity<List<ResourceResponseDto>> getDirectoryInfo(
+            @Valid @ModelAttribute DirectoryPathRequestDto request,
             @AuthenticationPrincipal SecurityUser currentUser
     ) {
-        List<ResourceResponseDto> list = resourcesService.listDirectory(currentUser.getId(), path);
+        List<ResourceResponseDto> list = resourcesService.listDirectory(currentUser.getId(), request.path());
 
         return ResponseEntity.ok(list);
     }

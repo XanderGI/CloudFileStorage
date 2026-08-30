@@ -1,5 +1,6 @@
-package io.github.XanderGI.controller;
+package io.github.XanderGI.controller.impl;
 
+import io.github.XanderGI.controller.AuthControllerApi;
 import io.github.XanderGI.dto.UserRequestDto;
 import io.github.XanderGI.dto.UserResponseDto;
 import io.github.XanderGI.service.AuthService;
@@ -25,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
-class AuthController {
+public class AuthController implements AuthControllerApi {
     private final AuthService authService;
     private final SecurityContextRepository contextRepository = new HttpSessionSecurityContextRepository();
 
