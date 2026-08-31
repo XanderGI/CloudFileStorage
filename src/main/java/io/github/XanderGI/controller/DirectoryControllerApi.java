@@ -7,6 +7,7 @@ import io.github.XanderGI.dto.request.DirectoryPathRequestDto;
 import io.github.XanderGI.security.SecurityUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -65,7 +66,9 @@ public interface DirectoryControllerApi {
                     description = "Successful receipt of directory information",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ResourceResponseDto.class)
+                            array = @ArraySchema(
+                                    schema = @Schema(implementation = ResourceResponseDto.class)
+                            )
                     )
             ),
             @ApiResponse(

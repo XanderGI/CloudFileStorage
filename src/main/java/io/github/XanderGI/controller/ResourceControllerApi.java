@@ -25,7 +25,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 
 import java.util.List;
 
-@Tag(name = "Resource", description = "controller for receiving information, uploading, downloading, moving, searching, and deleting resources")
+@Tag(name = "Resource", description = "File and folder resource management")
 @ResourceEndpointResponses
 public interface ResourceControllerApi {
 
