@@ -18,7 +18,7 @@ public class MinioPathHelper {
     @Value("${minio.prefix.template}")
     private String templatePrefix;
 
-    private String buildRootPrefix(Long userId) {
+    String buildRootPrefix(Long userId) {
         return templatePrefix.formatted(userId);
     }
 
@@ -85,7 +85,7 @@ public class MinioPathHelper {
         return accumulated;
     }
 
-    private String extractFilePath(Long userId, String path) {
+    String extractFilePath(Long userId, String path) {
         if (path == null || path.isBlank()) {
             return ROOT_PATH;
         }
