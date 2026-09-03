@@ -57,7 +57,7 @@ public class ResourceController implements ResourceControllerApi {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<List<ResourceResponseDto>> uploadResources(
             @Valid @ModelAttribute UploadResourceRequestDto request,
-            @RequestParam List<MultipartFile> files,
+            @RequestParam("object") List<MultipartFile> files,
             @AuthenticationPrincipal SecurityUser currentUser
     ) {
         List<UploadFileItem> fileItems = new ArrayList<>();

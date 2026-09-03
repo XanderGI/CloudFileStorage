@@ -102,6 +102,7 @@ public interface ResourceControllerApi {
     ResponseEntity<List<ResourceResponseDto>> uploadResources(
             @Valid @ParameterObject UploadResourceRequestDto request,
             @Parameter(
+                    name = "object",
                     description = "Files to upload",
                     required = true
             )
