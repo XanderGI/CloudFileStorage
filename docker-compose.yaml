@@ -71,6 +71,20 @@ services:
     volumes:
       - backend_logs:/app/logs
 
+  frontend:
+    build:
+      context: https://github.com/zhukovsd/cloud-storage-frontend.git#13a8d8061c6712e4dc8d76d3becc45189fd506d9
+      dockerfile: Dockerfile
+    container_name: frontend_cloud_file_storage
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/config.js:/usr/share/nginx/html/config.js:ro
+    depends_on:
+      - backend
+
 volumes:
   postgres_data:
   redis_data:
