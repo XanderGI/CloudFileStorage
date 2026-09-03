@@ -1,1 +1,1 @@
-rootProject.name = "XanderGI"
+rootProject.name = "CloudFileStorage"
