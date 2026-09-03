@@ -1,0 +1,7 @@
+.env
+build/
+.gradle/
+.idea/
+logs/
+*.log
+.git/
