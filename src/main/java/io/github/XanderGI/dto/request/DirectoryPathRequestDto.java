@@ -13,4 +13,9 @@ public record DirectoryPathRequestDto(
         @AnyDirectoryPath
         String path
 ) {
+    public DirectoryPathRequestDto {
+        if (path != null && path.isBlank()) {
+            path = "/";
+        }
+    }
 }

@@ -13,4 +13,9 @@ public record UploadResourceRequestDto(
         @UploadTargetPath
         String path
 ) {
+    public UploadResourceRequestDto {
+        if (path != null && path.isBlank()) {
+            path = "/";
+        }
+    }
 }
