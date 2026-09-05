@@ -3,7 +3,9 @@ package io.github.XanderGI;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.DynamicPropertyRegistrar;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.MinIOContainer;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -20,5 +22,21 @@ public class TestcontainersConfiguration {
     @ServiceConnection(name = "redis")
     GenericContainer<?> redisContainer() {
         return new GenericContainer<>(DockerImageName.parse("redis:8.8.0-alpine")).withExposedPorts(6379);
+    }
+
+    @Bean
+    MinIOContainer minIOContainer() {
+        return new MinIOContainer(DockerImageName.parse("minio/minio:RELEASE.2025-09-07T16-13-09Z-cpuv1"))
+                .withUserName("TestUser")
+                .withPassword("TestPass");
+    }
+
+    @Bean
+    DynamicPropertyRegistrar minioProperties(MinIOContainer minIOContainer) {
+        return registry -> {
+            registry.add("minio.access-key", minIOContainer::getUserName);
+            registry.add("minio.secret-key", minIOContainer::getPassword);
+            registry.add("minio.endpoint.url", minIOContainer::getS3URL);
+        };
     }
 }
