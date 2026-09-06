@@ -1,5 +1,6 @@
 package io.github.XanderGI.storage.impl;
 
+import io.github.XanderGI.config.minio.MinioProperties;
 import io.github.XanderGI.exception.MinioStorageException;
 import io.github.XanderGI.storage.StorageClient;
 import io.github.XanderGI.storage.StorageItem;
@@ -11,7 +12,6 @@ import io.minio.messages.DeleteRequest;
 import io.minio.messages.DeleteResult;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaTypeFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeType;
@@ -22,22 +22,18 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
-//todo: вынести настройки в properties через @ConfigurationProperties
-
 @Service
 @RequiredArgsConstructor
 public class MinioStorageClient implements StorageClient {
     private final MinioClient client;
-
-    @Value("${minio.bucket}")
-    private String bucketName;
+    private final MinioProperties minioProperties;
 
     @Override
     public void createFolder(String key) {
         try (InputStream inputStream = new ByteArrayInputStream(new byte[]{})) {
             client.putObject(
                     PutObjectArgs.builder()
-                            .bucket(bucketName)
+                            .bucket(minioProperties.bucket())
                             .object(key)
                             .stream(inputStream, 0L, -1L)
                             .build()
@@ -55,7 +51,7 @@ public class MinioStorageClient implements StorageClient {
         try {
             client.putObject(
                     PutObjectArgs.builder()
-                            .bucket(bucketName)
+                            .bucket(minioProperties.bucket())
                             .object(key)
                             .stream(inputStream, size, -1L)
                             .contentType(contentType)
@@ -72,7 +68,7 @@ public class MinioStorageClient implements StorageClient {
         try {
             return client.getObject(
                     GetObjectArgs.builder()
-                            .bucket(bucketName)
+                            .bucket(minioProperties.bucket())
                             .object(key)
                             .build()
             );
@@ -86,7 +82,7 @@ public class MinioStorageClient implements StorageClient {
         try {
             StatObjectResponse statResp = client.statObject(
                     StatObjectArgs.builder()
-                            .bucket(bucketName)
+                            .bucket(minioProperties.bucket())
                             .object(key)
                             .build()
             );
@@ -102,7 +98,7 @@ public class MinioStorageClient implements StorageClient {
         try {
             client.statObject(
                     StatObjectArgs.builder()
-                            .bucket(bucketName)
+                            .bucket(minioProperties.bucket())
                             .object(key)
                             .build()
             );
@@ -135,7 +131,7 @@ public class MinioStorageClient implements StorageClient {
         try {
             client.removeObject(
                     RemoveObjectArgs.builder()
-                            .bucket(bucketName)
+                            .bucket(minioProperties.bucket())
                             .object(key)
                             .build()
             );
@@ -152,7 +148,7 @@ public class MinioStorageClient implements StorageClient {
 
         Iterable<Result<DeleteResult.Error>> results = client.removeObjects(
                 RemoveObjectsArgs.builder()
-                        .bucket(bucketName)
+                        .bucket(minioProperties.bucket())
                         .objects(keys.stream()
                                 .map(DeleteRequest.Object::new)
                                 .toList()
@@ -169,10 +165,10 @@ public class MinioStorageClient implements StorageClient {
         try {
             client.copyObject(
                     CopyObjectArgs.builder()
-                            .bucket(bucketName)
+                            .bucket(minioProperties.bucket())
                             .object(toKey)
                             .source(SourceObject.builder()
-                                    .bucket(bucketName)
+                                    .bucket(minioProperties.bucket())
                                     .object(fromKey)
                                     .build())
                             .build()
@@ -185,7 +181,7 @@ public class MinioStorageClient implements StorageClient {
     private Iterable<Result<Item>> fetchRawObjects(String key, boolean isRecursive) {
         return client.listObjects(
                 ListObjectsArgs.builder()
-                        .bucket(bucketName)
+                        .bucket(minioProperties.bucket())
                         .prefix(key)
                         .recursive(isRecursive)
                         .build()

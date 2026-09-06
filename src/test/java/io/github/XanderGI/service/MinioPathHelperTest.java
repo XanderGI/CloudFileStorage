@@ -1,5 +1,6 @@
 package io.github.XanderGI.service;
 
+import io.github.XanderGI.config.minio.MinioProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -7,7 +8,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -17,11 +17,12 @@ public class MinioPathHelperTest {
     private static final String EXPECTED_ROOT = "user-42-files/";
     private static final String ROOT_PATH = "/";
 
-    private final MinioPathHelper helper = new MinioPathHelper();
+    private MinioPathHelper helper;
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(helper, "templatePrefix", "user-%s-files/");
+        MinioProperties.PrefixProperties prefixProperties = new MinioProperties.PrefixProperties("user-%s-files/");
+        helper = new MinioPathHelper(minioProperties(prefixProperties));
     }
 
     @Test
@@ -164,5 +165,9 @@ public class MinioPathHelperTest {
     })
     void shouldReturnContextPathWhenCallGetContextPathMethod(String path, String expectedPath) {
         assertThat(helper.getContextPath(path)).isEqualTo(expectedPath);
+    }
+
+    private MinioProperties minioProperties(MinioProperties.PrefixProperties prefix) {
+        return new MinioProperties(null, null, null, null, prefix);
     }
 }

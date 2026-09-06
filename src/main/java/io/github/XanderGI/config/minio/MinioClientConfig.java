@@ -1,7 +1,6 @@
 package io.github.XanderGI.config.minio;
 
 import io.minio.MinioClient;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -9,14 +8,12 @@ import org.springframework.context.annotation.Configuration;
 public class MinioClientConfig {
 
     @Bean
-    public MinioClient minioClient(
-            @Value("${minio.endpoint.url}") String endpointUrl,
-            @Value("${minio.access-key}") String accessKey,
-            @Value("${minio.secret-key}") String secretKey
-    ) {
+    public MinioClient minioClient(MinioProperties minioProperties) {
         return MinioClient.builder()
-                .endpoint(endpointUrl)
-                .credentials(accessKey, secretKey)
+                .endpoint(minioProperties
+                        .endpoint()
+                        .url())
+                .credentials(minioProperties.accessKey(), minioProperties.secretKey())
                 .build();
     }
 }

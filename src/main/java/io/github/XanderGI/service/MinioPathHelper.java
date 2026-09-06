@@ -1,7 +1,7 @@
 package io.github.XanderGI.service;
 
+import io.github.XanderGI.config.minio.MinioProperties;
 import org.apache.commons.io.FilenameUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -15,11 +15,16 @@ public class MinioPathHelper {
     private static final String KEY_DELIMITER = "/";
     private static final String ROOT_PATH = "/";
 
-    @Value("${minio.prefix.template}")
-    private String templatePrefix;
+    private final MinioProperties.PrefixProperties prefix;
+
+    public MinioPathHelper(MinioProperties minioProperties) {
+        this.prefix = minioProperties.prefix();
+    }
 
     String buildRootPrefix(Long userId) {
-        return templatePrefix.formatted(userId);
+        return prefix
+                .template()
+                .formatted(userId);
     }
 
     public boolean isFolder(String pathOrKey) {
