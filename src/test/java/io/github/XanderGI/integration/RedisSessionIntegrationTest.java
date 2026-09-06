@@ -1,7 +1,7 @@
 package io.github.XanderGI.integration;
 
 import io.github.XanderGI.TestcontainersConfiguration;
-import io.github.XanderGI.dto.UserRequestDto;
+import io.github.XanderGI.dto.request.UserRequestDto;
 import io.github.XanderGI.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;

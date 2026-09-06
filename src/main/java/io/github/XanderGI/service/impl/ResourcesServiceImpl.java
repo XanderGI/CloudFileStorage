@@ -1,9 +1,9 @@
 package io.github.XanderGI.service.impl;
 
-import io.github.XanderGI.dto.DownloadResult;
-import io.github.XanderGI.dto.ResourceResponseDto;
-import io.github.XanderGI.dto.ResourceType;
-import io.github.XanderGI.dto.UploadFileItem;
+import io.github.XanderGI.dto.internal.DownloadResult;
+import io.github.XanderGI.dto.response.ResourceResponseDto;
+import io.github.XanderGI.dto.response.ResourceType;
+import io.github.XanderGI.dto.internal.UploadFileItem;
 import io.github.XanderGI.exception.ResourceAlreadyExistsException;
 import io.github.XanderGI.exception.ResourceNotFoundException;
 import io.github.XanderGI.service.MinioPathHelper;

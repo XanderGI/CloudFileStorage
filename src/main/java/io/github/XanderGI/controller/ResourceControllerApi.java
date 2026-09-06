@@ -1,7 +1,7 @@
 package io.github.XanderGI.controller;
 
-import io.github.XanderGI.dto.ErrorResponseDto;
-import io.github.XanderGI.dto.ResourceResponseDto;
+import io.github.XanderGI.dto.response.ErrorResponseDto;
+import io.github.XanderGI.dto.response.ResourceResponseDto;
 import io.github.XanderGI.dto.request.MoveResourceRequestDto;
 import io.github.XanderGI.dto.request.ResourcePathRequestDto;
 import io.github.XanderGI.dto.request.SearchRequestDto;

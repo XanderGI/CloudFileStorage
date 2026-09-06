@@ -1,4 +1,4 @@
-package io.github.XanderGI.dto;
+package io.github.XanderGI.dto.internal;
 
 import java.io.InputStream;
 

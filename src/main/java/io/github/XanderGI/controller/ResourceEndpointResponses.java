@@ -1,6 +1,6 @@
 package io.github.XanderGI.controller;
 
-import io.github.XanderGI.dto.ErrorResponseDto;
+import io.github.XanderGI.dto.response.ErrorResponseDto;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

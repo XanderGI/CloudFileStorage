@@ -1,9 +1,9 @@
 package io.github.XanderGI.controller.impl;
 
 import io.github.XanderGI.controller.ResourceControllerApi;
-import io.github.XanderGI.dto.DownloadResult;
-import io.github.XanderGI.dto.ResourceResponseDto;
-import io.github.XanderGI.dto.UploadFileItem;
+import io.github.XanderGI.dto.internal.DownloadResult;
+import io.github.XanderGI.dto.response.ResourceResponseDto;
+import io.github.XanderGI.dto.internal.UploadFileItem;
 import io.github.XanderGI.dto.request.MoveResourceRequestDto;
 import io.github.XanderGI.dto.request.ResourcePathRequestDto;
 import io.github.XanderGI.dto.request.SearchRequestDto;

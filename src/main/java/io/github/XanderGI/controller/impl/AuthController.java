@@ -1,8 +1,8 @@
 package io.github.XanderGI.controller.impl;
 
 import io.github.XanderGI.controller.AuthControllerApi;
-import io.github.XanderGI.dto.UserRequestDto;
-import io.github.XanderGI.dto.UserResponseDto;
+import io.github.XanderGI.dto.request.UserRequestDto;
+import io.github.XanderGI.dto.response.UserResponseDto;
 import io.github.XanderGI.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

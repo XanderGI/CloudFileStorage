@@ -1,4 +1,4 @@
-package io.github.XanderGI.dto;
+package io.github.XanderGI.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;

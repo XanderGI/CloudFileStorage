@@ -1,7 +1,7 @@
 package io.github.XanderGI.controller.impl;
 
 import io.github.XanderGI.controller.DirectoryControllerApi;
-import io.github.XanderGI.dto.ResourceResponseDto;
+import io.github.XanderGI.dto.response.ResourceResponseDto;
 import io.github.XanderGI.dto.request.CreateDirectoryRequestDto;
 import io.github.XanderGI.dto.request.DirectoryPathRequestDto;
 import io.github.XanderGI.security.SecurityUser;

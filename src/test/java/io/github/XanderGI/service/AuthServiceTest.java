@@ -1,7 +1,7 @@
 package io.github.XanderGI.service;
 
 import io.github.XanderGI.TestcontainersConfiguration;
-import io.github.XanderGI.dto.UserRequestDto;
+import io.github.XanderGI.dto.request.UserRequestDto;
 import io.github.XanderGI.entity.User;
 import io.github.XanderGI.exception.UserAlreadyExistException;
 import io.github.XanderGI.repository.UserRepository;

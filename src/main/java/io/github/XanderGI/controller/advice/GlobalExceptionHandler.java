@@ -1,6 +1,6 @@
 package io.github.XanderGI.controller.advice;
 
-import io.github.XanderGI.dto.ErrorResponseDto;
+import io.github.XanderGI.dto.response.ErrorResponseDto;
 import io.github.XanderGI.exception.ResourceAlreadyExistsException;
 import io.github.XanderGI.exception.ResourceNotFoundException;
 import io.github.XanderGI.exception.UserAlreadyExistException;

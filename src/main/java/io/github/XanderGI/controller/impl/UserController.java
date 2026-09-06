@@ -1,7 +1,7 @@
 package io.github.XanderGI.controller.impl;
 
 import io.github.XanderGI.controller.UserControllerApi;
-import io.github.XanderGI.dto.UserResponseDto;
+import io.github.XanderGI.dto.response.UserResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

@@ -1,4 +1,4 @@
-package io.github.XanderGI.dto;
+package io.github.XanderGI.dto.response;
 
 public enum ResourceType {
     DIRECTORY, FILE
