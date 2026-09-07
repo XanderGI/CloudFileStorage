@@ -2,12 +2,13 @@ package io.github.XanderGI.controller.impl;
 
 import io.github.XanderGI.controller.ResourceControllerApi;
 import io.github.XanderGI.dto.internal.DownloadResult;
-import io.github.XanderGI.dto.response.ResourceResponseDto;
 import io.github.XanderGI.dto.internal.UploadFileItem;
 import io.github.XanderGI.dto.request.MoveResourceRequestDto;
 import io.github.XanderGI.dto.request.ResourcePathRequestDto;
 import io.github.XanderGI.dto.request.SearchRequestDto;
 import io.github.XanderGI.dto.request.UploadResourceRequestDto;
+import io.github.XanderGI.dto.response.ResourceResponseDto;
+import io.github.XanderGI.mapper.UploadFileItemMapper;
 import io.github.XanderGI.security.SecurityUser;
 import io.github.XanderGI.service.ResourcesService;
 import jakarta.validation.Valid;
@@ -21,18 +22,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
-
-//todo: добавить маппинг: MultipartFile -> UploadFileItem
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/resource")
 public class ResourceController implements ResourceControllerApi {
     private final ResourcesService resourcesService;
+    private final UploadFileItemMapper mapper;
 
     @GetMapping
     public ResponseEntity<ResourceResponseDto> getInfo(
@@ -60,19 +58,7 @@ public class ResourceController implements ResourceControllerApi {
             @RequestParam("object") List<MultipartFile> files,
             @AuthenticationPrincipal SecurityUser currentUser
     ) {
-        List<UploadFileItem> fileItems = new ArrayList<>();
-
-        for (MultipartFile file : files) {
-            try {
-                fileItems.add(new UploadFileItem(
-                        file.getOriginalFilename(),
-                        file.getInputStream(),
-                        file.getSize()
-                ));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
+        List<UploadFileItem> fileItems = mapper.toUploadFileItems(files);
 
         List<ResourceResponseDto> responseList = resourcesService.uploadResources(
                 currentUser.getId(),
