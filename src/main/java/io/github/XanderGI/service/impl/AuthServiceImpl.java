@@ -7,12 +7,14 @@ import io.github.XanderGI.repository.UserRepository;
 import io.github.XanderGI.service.AuthService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -33,6 +35,8 @@ public class AuthServiceImpl implements AuthService {
         String passwordHash = passwordEncoder.encode(dto.password());
 
         userRepository.save(new User(dto.username(), passwordHash));
+
+        log.info("New user registered: {}", dto.username());
 
         return authenticateUser(dto.username(), dto.password());
     }

@@ -50,6 +50,8 @@ public class ResourcesServiceImpl implements ResourcesService {
 
         storageClient.createFolder(key);
 
+        log.info("Directory {} created, for user {}", helper.getName(key), userId);
+
         return buildResourceResponse(userId, key, null, helper.isFolder(key));
     }
 
@@ -88,13 +90,14 @@ public class ResourcesServiceImpl implements ResourcesService {
     @Override
     public void deleteResource(Long userId, String path) {
         String rootKey = helper.buildMinioKey(userId, path);
+        List<String> nestedKeys = new ArrayList<>();
 
         if (!storageClient.isExist(rootKey)) {
             throw new ResourceNotFoundException("Failed to delete resource: resource not found");
         }
 
         if (helper.isFolder(rootKey)) {
-            List<String> nestedKeys = storageClient.listObjects(rootKey, true).stream()
+            nestedKeys = storageClient.listObjects(rootKey, true).stream()
                     .map(StorageItem::key)
                     .toList();
 
@@ -102,6 +105,9 @@ public class ResourcesServiceImpl implements ResourcesService {
         }
 
         storageClient.removeObject(rootKey);
+
+        int totalDeletedResources = nestedKeys.size() + 1;
+        log.info("Success deleted {} resources, for user {}", totalDeletedResources, userId);
     }
 
     @Override
@@ -143,6 +149,8 @@ public class ResourcesServiceImpl implements ResourcesService {
 
             responseList.add(0, buildResourceResponse(userId, fileKey, file.size(), false));
         }
+
+        log.info("Uploaded {} resources for user {}", responseList.size(), userId);
 
         return responseList;
     }
@@ -241,6 +249,9 @@ public class ResourcesServiceImpl implements ResourcesService {
         );
         storageClient.removeObject(fromKey);
 
+        int totalMovedResources = items.size() + 1;
+        log.info("Resources {} moved: from {}, to {}, for user {}", totalMovedResources, fromKey, toKey, userId);
+
         return buildResourceResponse(userId, toKey, null, true);
     }
 
@@ -249,6 +260,8 @@ public class ResourcesServiceImpl implements ResourcesService {
 
         storageClient.copyObject(fromKey, toKey);
         storageClient.removeObject(fromKey);
+
+        log.info("Resource moved: from {}, to {}, for user {}", fromKey, toKey, userId);
 
         return buildResourceResponse(userId, toKey, size, false);
     }
