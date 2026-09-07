@@ -34,6 +34,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserAlreadyExistException.class)
     public ResponseEntity<ErrorResponseDto> handleUserAlreadyExistException(UserAlreadyExistException e) {
+        log.warn("Registration attempt with already taken username: {}", e.getUsername());
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(new ErrorResponseDto(e.getMessage()));
@@ -52,6 +53,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDto> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         String message = e.getAllErrors().get(0).getDefaultMessage();
 
+        log.warn("Validation failed: {}", message);
+
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponseDto(message));
@@ -61,6 +64,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDto> handleConstraintViolationException(ConstraintViolationException e) {
         String message = e.getConstraintViolations().iterator().next().getMessage();
 
+        log.warn("Constraint violation: {}", message);
+
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponseDto(message));
@@ -68,11 +73,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({MissingServletRequestParameterException.class, MissingServletRequestPartException.class})
     public ResponseEntity<ErrorResponseDto> handleMissingRequestValue(Exception e) {
+        log.warn("Missing required request value: {}", e.getMessage());
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponseDto(e.getMessage()));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponseDto> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.warn("Illegal argument in request: {}", e.getMessage());
+
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponseDto(e.getMessage()));
@@ -80,6 +89,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorResponseDto> handleBadCredentialsException(BadCredentialsException e) {
+        log.warn("Failed authentication attempt: invalid credentials");
+
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(new ErrorResponseDto("Invalid username or password"));
@@ -87,6 +98,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceAlreadyExistsException.class)
     public ResponseEntity<ErrorResponseDto> handleResourceAlreadyExistsException(ResourceAlreadyExistsException e) {
+        log.warn("Resource conflict: {}", e.getMessage());
+
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(new ErrorResponseDto(e.getMessage()));
@@ -94,6 +107,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponseDto> handleResourceNotFoundException(ResourceNotFoundException e) {
+        log.warn("Resource not found: {}", e.getMessage());
+
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponseDto(e.getMessage()));
@@ -101,6 +116,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ErrorResponseDto> handleNoResourceFoundException(NoResourceFoundException e) {
+        log.warn("No handler found for request: {}", e.getMessage());
+
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponseDto(e.getMessage()));
@@ -108,6 +125,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ErrorResponseDto> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
+        log.warn("Upload size limit exceeded: {}", e.getMessage());
         return ResponseEntity
                 .status(HttpStatus.CONTENT_TOO_LARGE)
                 .body(new ErrorResponseDto(e.getMessage()));
@@ -115,7 +133,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(FileReadException.class)
     public ResponseEntity<ErrorResponseDto> handleFileReadException(FileReadException e) {
-        log.error("File read error during upload", e);
+        log.warn("File read error during upload", e);
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
