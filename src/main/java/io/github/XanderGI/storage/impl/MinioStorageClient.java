@@ -2,6 +2,7 @@ package io.github.XanderGI.storage.impl;
 
 import io.github.XanderGI.config.minio.MinioProperties;
 import io.github.XanderGI.exception.MinioStorageException;
+import io.github.XanderGI.mapper.StorageItemMapper;
 import io.github.XanderGI.storage.StorageClient;
 import io.github.XanderGI.storage.StorageItem;
 import io.github.XanderGI.storage.StorageObjectInfo;
@@ -27,6 +28,7 @@ import java.util.stream.StreamSupport;
 public class MinioStorageClient implements StorageClient {
     private final MinioClient client;
     private final MinioProperties minioProperties;
+    private final StorageItemMapper mapper;
 
     @Override
     public void createFolder(String key) {
@@ -122,7 +124,7 @@ public class MinioStorageClient implements StorageClient {
         return StreamSupport.stream(results.spliterator(), false)
                 .map(this::unwrapResult)
                 .filter(item -> !item.objectName().equals(key))
-                .map(this::toStorageItem)
+                .map(mapper::toStorageItem)
                 .toList();
     }
 
@@ -194,15 +196,5 @@ public class MinioStorageClient implements StorageClient {
         } catch (MinioException e) {
             throw new MinioStorageException("Failed to process storage result", e);
         }
-    }
-
-    private StorageItem toStorageItem(Item item) {
-        boolean isDirectory = item.objectName().endsWith("/");
-
-        return new StorageItem(
-                item.objectName(),
-                isDirectory ? null : item.size(),
-                isDirectory
-        );
     }
 }
