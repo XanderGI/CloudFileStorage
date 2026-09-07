@@ -21,8 +21,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-// todo: сделать маппер для dto
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
