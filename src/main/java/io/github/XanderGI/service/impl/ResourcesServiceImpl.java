@@ -1,11 +1,11 @@
 package io.github.XanderGI.service.impl;
 
 import io.github.XanderGI.dto.internal.DownloadResult;
-import io.github.XanderGI.dto.response.ResourceResponseDto;
-import io.github.XanderGI.dto.response.ResourceType;
 import io.github.XanderGI.dto.internal.UploadFileItem;
+import io.github.XanderGI.dto.response.ResourceResponseDto;
 import io.github.XanderGI.exception.ResourceAlreadyExistsException;
 import io.github.XanderGI.exception.ResourceNotFoundException;
+import io.github.XanderGI.mapper.ResourceDtoMapper;
 import io.github.XanderGI.service.MinioPathHelper;
 import io.github.XanderGI.service.ResourcesService;
 import io.github.XanderGI.storage.StorageClient;
@@ -25,15 +25,13 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-//todo: добавить mapper для dto
-//todo: подумать стоит ли пытаться добавить фичу для отображения progress-bar при download
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ResourcesServiceImpl implements ResourcesService {
     private final StorageClient storageClient;
     private final MinioPathHelper helper;
+    private final ResourceDtoMapper mapper;
 
     @Override
     public ResourceResponseDto createDirectory(Long userId, String path) {
@@ -52,7 +50,7 @@ public class ResourcesServiceImpl implements ResourcesService {
 
         storageClient.createFolder(key);
 
-        return toDto(userId, key, null, helper.isFolder(key));
+        return buildResourceResponse(userId, key, null, helper.isFolder(key));
     }
 
     @Override
@@ -68,7 +66,7 @@ public class ResourcesServiceImpl implements ResourcesService {
 
         return storageItems.stream()
                 .map(item ->
-                        toDto(userId, item.key(), item.size(), item.isDirectory())
+                        buildResourceResponse(userId, item.key(), item.size(), item.isDirectory())
                 )
                 .toList();
     }
@@ -84,7 +82,7 @@ public class ResourcesServiceImpl implements ResourcesService {
         StorageObjectInfo objectInfo = storageClient.statObject(key);
         boolean isDirectory = helper.isFolder(key);
 
-        return toDto(userId, key, objectInfo.size(), isDirectory);
+        return buildResourceResponse(userId, key, objectInfo.size(), isDirectory);
     }
 
     @Override
@@ -137,13 +135,13 @@ public class ResourcesServiceImpl implements ResourcesService {
                 if (!storageClient.isExist(segmentKey)) {
                     storageClient.createFolder(segmentKey);
 
-                    responseList.add(0, toDto(userId, segmentKey, null, true));
+                    responseList.add(0, buildResourceResponse(userId, segmentKey, null, true));
                 }
             }
 
             storageClient.upload(fileKey, file.inputStream(), file.size(), file.originalFilename());
 
-            responseList.add(0, toDto(userId, fileKey, file.size(), false));
+            responseList.add(0, buildResourceResponse(userId, fileKey, file.size(), false));
         }
 
         return responseList;
@@ -161,7 +159,7 @@ public class ResourcesServiceImpl implements ResourcesService {
                     String fileName = helper.getName(item.key()).toLowerCase();
                     return fileName.contains(lowerQuery);
                 })
-                .map(item -> toDto(userId, item.key(), item.size(), item.isDirectory()))
+                .map(item -> buildResourceResponse(userId, item.key(), item.size(), item.isDirectory()))
                 .toList();
     }
 
@@ -243,7 +241,7 @@ public class ResourcesServiceImpl implements ResourcesService {
         );
         storageClient.removeObject(fromKey);
 
-        return toDto(userId, toKey, null, true);
+        return buildResourceResponse(userId, toKey, null, true);
     }
 
     private ResourceResponseDto moveFile(Long userId, String fromKey, String toKey) {
@@ -252,7 +250,7 @@ public class ResourcesServiceImpl implements ResourcesService {
         storageClient.copyObject(fromKey, toKey);
         storageClient.removeObject(fromKey);
 
-        return toDto(userId, toKey, size, false);
+        return buildResourceResponse(userId, toKey, size, false);
     }
 
     private void buildZip(String key, OutputStream outputStream) throws IOException {
@@ -278,12 +276,10 @@ public class ResourcesServiceImpl implements ResourcesService {
         }
     }
 
-    private ResourceResponseDto toDto(Long userId, String key, Long size, boolean isDirectory) {
-        return new ResourceResponseDto(
-                helper.getContextPathFromKey(userId, key),
-                helper.getName(key),
-                isDirectory ? null : size,
-                isDirectory ? ResourceType.DIRECTORY : ResourceType.FILE
-        );
+    private ResourceResponseDto buildResourceResponse(Long userId, String key, Long size, boolean isDirectory) {
+        String path = helper.getContextPathFromKey(userId, key);
+        String name = helper.getName(key);
+
+        return mapper.toResourceResponseDto(path, name, size, isDirectory);
     }
 }
