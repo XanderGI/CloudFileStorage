@@ -64,7 +64,9 @@ public class AuthControllerTest {
 
     @Test
     public void shouldReturn409WhenUsernameIsTaken() throws Exception {
-        when(authService.signUp(validDto)).thenThrow(new UserAlreadyExistException("User with this username already exist, change username"));
+        when(authService.signUp(validDto)).thenThrow(
+                new UserAlreadyExistException("User with this username already exist, change username", validDto.username())
+        );
 
         mockMvc.perform(post("/api/auth/sign-up")
                         .contentType(MediaType.APPLICATION_JSON)

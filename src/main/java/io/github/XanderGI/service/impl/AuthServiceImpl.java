@@ -29,7 +29,7 @@ public class AuthServiceImpl implements AuthService {
     public Authentication signUp(UserRequestDto dto) {
         userRepository.findByUsername(dto.username())
                 .ifPresent(user -> {
-                    throw new UserAlreadyExistException(LOGIN_OCCUPIED_ERROR);
+                    throw new UserAlreadyExistException(LOGIN_OCCUPIED_ERROR, dto.username());
                 });
 
         String passwordHash = passwordEncoder.encode(dto.password());
