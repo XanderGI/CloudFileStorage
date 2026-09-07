@@ -1,6 +1,7 @@
 package io.github.XanderGI.controller.advice;
 
 import io.github.XanderGI.dto.response.ErrorResponseDto;
+import io.github.XanderGI.exception.FileReadException;
 import io.github.XanderGI.exception.ResourceAlreadyExistsException;
 import io.github.XanderGI.exception.ResourceNotFoundException;
 import io.github.XanderGI.exception.UserAlreadyExistException;
@@ -109,6 +110,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDto> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
         return ResponseEntity
                 .status(HttpStatus.CONTENT_TOO_LARGE)
+                .body(new ErrorResponseDto(e.getMessage()));
+    }
+
+    @ExceptionHandler(FileReadException.class)
+    public ResponseEntity<ErrorResponseDto> handleFileReadException(FileReadException e) {
+        log.error("File read error during upload", e);
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponseDto(e.getMessage()));
     }
 }

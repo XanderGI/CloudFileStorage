@@ -1,6 +1,7 @@
 package io.github.XanderGI.mapper;
 
 import io.github.XanderGI.dto.internal.UploadFileItem;
+import io.github.XanderGI.exception.FileReadException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,7 +25,7 @@ public class UploadFileItemMapper {
                     file.getSize()
             );
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new FileReadException("Failed to read uploaded file: %s".formatted(file.getOriginalFilename()), e);
         }
     }
 }
