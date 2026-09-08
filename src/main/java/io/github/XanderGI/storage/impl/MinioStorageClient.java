@@ -14,7 +14,7 @@ import io.minio.messages.DeleteResult;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaTypeFactory;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.util.MimeType;
 
 import java.io.ByteArrayInputStream;
@@ -23,9 +23,11 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
-@Service
+@Component
 @RequiredArgsConstructor
 public class MinioStorageClient implements StorageClient {
+    public static final String FAILED_CHECK_EXIST_RESOURCE = "Failed to check exist resource";
+
     private final MinioClient client;
     private final MinioProperties minioProperties;
     private final StorageItemMapper mapper;
@@ -50,6 +52,7 @@ public class MinioStorageClient implements StorageClient {
         String contentType = MediaTypeFactory.getMediaType(filename)
                 .map(MimeType::toString)
                 .orElse("application/octet-stream");
+
         try {
             client.putObject(
                     PutObjectArgs.builder()
@@ -111,9 +114,9 @@ public class MinioStorageClient implements StorageClient {
                 return false;
             }
 
-            throw new MinioStorageException("Failed to check exist resource", e);
+            throw new MinioStorageException(FAILED_CHECK_EXIST_RESOURCE, e);
         } catch (MinioException e) {
-            throw new MinioStorageException("Failed to check exist resource", e);
+            throw new MinioStorageException(FAILED_CHECK_EXIST_RESOURCE, e);
         }
     }
 
