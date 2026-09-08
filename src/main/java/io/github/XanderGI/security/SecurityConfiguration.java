@@ -1,6 +1,9 @@
 package io.github.XanderGI.security;
 
+import io.github.XanderGI.dto.response.ErrorResponseDto;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -9,13 +12,20 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import tools.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfiguration {
+
+    private final ObjectMapper objectMapper;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -42,13 +52,16 @@ public class SecurityConfiguration {
                         ).permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint((req, resp, authException) -> {
-                            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                            resp.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            resp.getWriter().write(
-                                    "{\"message\": \"user not authenticated\"}"
-                            );
-                        }))
+                        .authenticationEntryPoint(this::handleUnauthorized))
                 .build();
+    }
+
+    private void handleUnauthorized(HttpServletRequest req, HttpServletResponse resp, AuthenticationException authException) throws IOException {
+        resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        resp.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+        ErrorResponseDto errorResponse = new ErrorResponseDto("user not authenticated");
+
+        objectMapper.writeValue(resp.getWriter(), errorResponse);
     }
 }
