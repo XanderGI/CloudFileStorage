@@ -35,14 +35,14 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
 @ActiveProfiles("test")
-public class ResourcesServiceTest {
+public class ResourceServiceTest {
     private static final Long FIRST_USER_ID = 1L;
     private static final Long SECOND_USER_ID = 2L;
     private static final String ROOT_PATH = "/";
     private static final String DEFAULT_CONTENT = "test content";
 
     @Autowired
-    private ResourcesService resourcesService;
+    private ResourceService resourceService;
 
     @Autowired
     private StorageClient storageClient;
@@ -71,7 +71,7 @@ public class ResourcesServiceTest {
             String firstUserKeyFile = firstUserKey("test.txt");
             UploadFileItem fileItem = createFileItem("test.txt", DEFAULT_CONTENT);
 
-            List<ResourceResponseDto> response = resourcesService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(fileItem));
+            List<ResourceResponseDto> response = resourceService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(fileItem));
 
             ResourceResponseDto expected = new ResourceResponseDto("/", "test.txt", fileItem.size(), ResourceType.FILE);
             assertThat(response).isNotEmpty();
@@ -89,7 +89,7 @@ public class ResourcesServiceTest {
 
             UploadFileItem fileItem = createFileItem("subfolder/test.txt", DEFAULT_CONTENT);
 
-            List<ResourceResponseDto> response = resourcesService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(fileItem));
+            List<ResourceResponseDto> response = resourceService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(fileItem));
 
             assertThat(response).isNotEmpty();
             assertThat(response).hasSize(2);
@@ -114,7 +114,7 @@ public class ResourcesServiceTest {
                     createFileItem("test.txt", "test content duplicate")
             );
 
-            assertThatThrownBy(() -> resourcesService.uploadResources(FIRST_USER_ID, ROOT_PATH, files))
+            assertThatThrownBy(() -> resourceService.uploadResources(FIRST_USER_ID, ROOT_PATH, files))
                     .isInstanceOf(ResourceAlreadyExistsException.class);
             assertThat(storageClient.isExist(firstUserKeyFile)).isFalse();
         }
@@ -125,9 +125,9 @@ public class ResourcesServiceTest {
             UploadFileItem firstFile = createFileItem("test.txt", DEFAULT_CONTENT);
             UploadFileItem secondFile = createFileItem("test.txt", DEFAULT_CONTENT);
 
-            resourcesService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(firstFile));
+            resourceService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(firstFile));
 
-            assertThatThrownBy(() -> resourcesService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(secondFile)))
+            assertThatThrownBy(() -> resourceService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(secondFile)))
                     .isInstanceOf(ResourceAlreadyExistsException.class);
             assertThat(storageClient.isExist(firstUserKeyFile)).isTrue();
         }
@@ -144,9 +144,9 @@ public class ResourcesServiceTest {
                     firstFileItem,
                     secondFileItem
             );
-            resourcesService.uploadResources(FIRST_USER_ID, ROOT_PATH, files);
+            resourceService.uploadResources(FIRST_USER_ID, ROOT_PATH, files);
 
-            List<ResourceResponseDto> response = resourcesService.listDirectory(FIRST_USER_ID, ROOT_PATH);
+            List<ResourceResponseDto> response = resourceService.getDirectoryContent(FIRST_USER_ID, ROOT_PATH);
 
             assertThat(response).hasSize(2);
             assertThat(response).extracting(
@@ -161,9 +161,9 @@ public class ResourcesServiceTest {
         @Test
         void shouldReturnOnlyDirectChildrenWhenListingDirectory() {
             UploadFileItem file = createFileItem("nested/deep/test.txt", "deep content");
-            resourcesService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(file));
+            resourceService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(file));
 
-            List<ResourceResponseDto> response = resourcesService.listDirectory(FIRST_USER_ID, "nested/");
+            List<ResourceResponseDto> response = resourceService.getDirectoryContent(FIRST_USER_ID, "nested/");
 
             ResourceResponseDto expected = new ResourceResponseDto("nested/", "deep", null, ResourceType.DIRECTORY);
             assertThat(response).hasSize(1);
@@ -175,14 +175,14 @@ public class ResourcesServiceTest {
 
         @Test
         void shouldReturnEmptyListWhenDirectoryIsEmpty() {
-            resourcesService.createDirectory(FIRST_USER_ID, "emptyDir/");
+            resourceService.createDirectory(FIRST_USER_ID, "emptyDir/");
 
-            assertThat(resourcesService.listDirectory(FIRST_USER_ID, "emptyDir/")).isEmpty();
+            assertThat(resourceService.getDirectoryContent(FIRST_USER_ID, "emptyDir/")).isEmpty();
         }
 
         @Test
         void shouldThrowNotFoundExceptionWhenDirectoryDoesNotExist() {
-            assertThatThrownBy(() -> resourcesService.listDirectory(FIRST_USER_ID, "notExistFolder/"))
+            assertThatThrownBy(() -> resourceService.getDirectoryContent(FIRST_USER_ID, "notExistFolder/"))
                     .isInstanceOf(ResourceNotFoundException.class);
         }
     }
@@ -195,7 +195,7 @@ public class ResourcesServiceTest {
             String firstUserKeyFolder = firstUserKey("testFolder/");
 
             ResourceResponseDto expected = new ResourceResponseDto(ROOT_PATH, "testFolder", null, ResourceType.DIRECTORY);
-            assertThat(resourcesService.createDirectory(FIRST_USER_ID, "testFolder/"))
+            assertThat(resourceService.createDirectory(FIRST_USER_ID, "testFolder/"))
                     .usingRecursiveComparison()
                     .isEqualTo(expected);
             assertThat(storageClient.isExist(firstUserKeyFolder)).isTrue();
@@ -203,15 +203,15 @@ public class ResourcesServiceTest {
 
         @Test
         void shouldThrowAlreadyExistsExceptionWhenDirectoryAlreadyExists() {
-            resourcesService.createDirectory(FIRST_USER_ID, "testFolder/");
+            resourceService.createDirectory(FIRST_USER_ID, "testFolder/");
 
-            assertThatThrownBy(() -> resourcesService.createDirectory(FIRST_USER_ID, "testFolder/"))
+            assertThatThrownBy(() -> resourceService.createDirectory(FIRST_USER_ID, "testFolder/"))
                     .isInstanceOf(ResourceAlreadyExistsException.class);
         }
 
         @Test
         void shouldThrowNotFoundExceptionWhenParentDirectoryDoesNotExist() {
-            assertThatThrownBy(() -> resourcesService.createDirectory(FIRST_USER_ID, "notExistFolder/nestedFolder/"))
+            assertThatThrownBy(() -> resourceService.createDirectory(FIRST_USER_ID, "notExistFolder/nestedFolder/"))
                     .isInstanceOf(ResourceNotFoundException.class);
         }
     }
@@ -223,9 +223,9 @@ public class ResourcesServiceTest {
         void shouldDeleteFileSuccessfully() {
             String firstUserKeyFile = firstUserKey("test.txt");
             UploadFileItem file = createFileItem("test.txt", DEFAULT_CONTENT);
-            resourcesService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(file));
+            resourceService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(file));
 
-            resourcesService.deleteResource(FIRST_USER_ID, "test.txt");
+            resourceService.deleteResource(FIRST_USER_ID, "test.txt");
 
             assertThat(storageClient.isExist(firstUserKeyFile)).isFalse();
         }
@@ -235,9 +235,9 @@ public class ResourcesServiceTest {
             String firstUserKeyFile = firstUserKey("nested/deep/test.txt");
             String firstUserKeyFolder = firstUserKey("nested/");
             UploadFileItem file = createFileItem("nested/deep/test.txt", DEFAULT_CONTENT);
-            resourcesService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(file));
+            resourceService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(file));
 
-            resourcesService.deleteResource(FIRST_USER_ID, "nested/");
+            resourceService.deleteResource(FIRST_USER_ID, "nested/");
 
             assertThat(storageClient.isExist(firstUserKeyFile)).isFalse();
             assertThat(storageClient.isExist(firstUserKeyFolder)).isFalse();
@@ -245,7 +245,7 @@ public class ResourcesServiceTest {
 
         @Test
         void shouldThrowNotFoundExceptionWhenResourceDoesNotExist() {
-            assertThatThrownBy(() -> resourcesService.deleteResource(FIRST_USER_ID, "notExistFolder/"))
+            assertThatThrownBy(() -> resourceService.deleteResource(FIRST_USER_ID, "notExistFolder/"))
                     .isInstanceOf(ResourceNotFoundException.class);
         }
     }
@@ -258,9 +258,9 @@ public class ResourcesServiceTest {
             String firstUserKeyNotRenamedFile = firstUserKey("notRenamed.txt");
             String firstUserKeyRenamedFile = firstUserKey("renamed.txt");
             UploadFileItem file = createFileItem("notRenamed.txt", DEFAULT_CONTENT);
-            resourcesService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(file));
+            resourceService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(file));
 
-            ResourceResponseDto response = resourcesService.moveResource(FIRST_USER_ID, "notRenamed.txt", "renamed.txt");
+            ResourceResponseDto response = resourceService.moveResource(FIRST_USER_ID, "notRenamed.txt", "renamed.txt");
 
             ResourceResponseDto expected = new ResourceResponseDto(ROOT_PATH, "renamed.txt", file.size(), ResourceType.FILE);
             assertThat(storageClient.isExist(firstUserKeyNotRenamedFile)).isFalse();
@@ -275,10 +275,10 @@ public class ResourcesServiceTest {
             String firstUserKeyFile = firstUserKey("test.txt");
             String firstUserKeyNestedFile = firstUserKey("target/test.txt");
             UploadFileItem file = createFileItem("test.txt", DEFAULT_CONTENT);
-            resourcesService.createDirectory(FIRST_USER_ID, "target/");
-            resourcesService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(file));
+            resourceService.createDirectory(FIRST_USER_ID, "target/");
+            resourceService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(file));
 
-            ResourceResponseDto response = resourcesService.moveResource(FIRST_USER_ID, "test.txt", "target/test.txt");
+            ResourceResponseDto response = resourceService.moveResource(FIRST_USER_ID, "test.txt", "target/test.txt");
 
             ResourceResponseDto expected = new ResourceResponseDto("target/", "test.txt", file.size(), ResourceType.FILE);
             assertThat(storageClient.isExist(firstUserKeyFile)).isFalse();
@@ -302,9 +302,9 @@ public class ResourcesServiceTest {
                     firstFile,
                     secondFile
             );
-            resourcesService.uploadResources(FIRST_USER_ID, "oldFolder/", files);
+            resourceService.uploadResources(FIRST_USER_ID, "oldFolder/", files);
 
-            resourcesService.moveResource(FIRST_USER_ID, "oldFolder/", "newFolder/");
+            resourceService.moveResource(FIRST_USER_ID, "oldFolder/", "newFolder/");
 
             assertThat(storageClient.isExist(oldFolderKey)).isFalse();
             assertThat(storageClient.isExist(oldFirstNestedFileKey)).isFalse();
@@ -317,9 +317,9 @@ public class ResourcesServiceTest {
         @Test
         void shouldThrowIllegalArgumentExceptionWhenMovingFileToDirectoryPath() {
             UploadFileItem file = createFileItem("test.txt", DEFAULT_CONTENT);
-            resourcesService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(file));
+            resourceService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(file));
 
-            assertThatThrownBy(() -> resourcesService.moveResource(FIRST_USER_ID, "test.txt", "folder/"))
+            assertThatThrownBy(() -> resourceService.moveResource(FIRST_USER_ID, "test.txt", "folder/"))
                     .isInstanceOf(IllegalArgumentException.class);
         }
 
@@ -332,25 +332,25 @@ public class ResourcesServiceTest {
                     firstFile,
                     secondFile
             );
-            resourcesService.uploadResources(FIRST_USER_ID, ROOT_PATH, files);
+            resourceService.uploadResources(FIRST_USER_ID, ROOT_PATH, files);
 
-            assertThatThrownBy(() -> resourcesService.moveResource(FIRST_USER_ID, "source.txt", "target.txt"))
+            assertThatThrownBy(() -> resourceService.moveResource(FIRST_USER_ID, "source.txt", "target.txt"))
                     .isInstanceOf(ResourceAlreadyExistsException.class);
             assertThat(storageClient.isExist(firstFileKey)).isTrue();
         }
 
         @Test
         void shouldThrowNotFoundExceptionWhenSourceResourceDoesNotExist() {
-            assertThatThrownBy(() -> resourcesService.moveResource(FIRST_USER_ID, "from/", "to/"))
+            assertThatThrownBy(() -> resourceService.moveResource(FIRST_USER_ID, "from/", "to/"))
                     .isInstanceOf(ResourceNotFoundException.class);
         }
 
         @Test
         void shouldThrowNotFoundExceptionWhenTargetParentDirectoryDoesNotExist() {
             UploadFileItem file = createFileItem("test.txt", DEFAULT_CONTENT);
-            resourcesService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(file));
+            resourceService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(file));
 
-            assertThatThrownBy(() -> resourcesService.moveResource(FIRST_USER_ID, "test.txt", "notExistFolder/target.txt"))
+            assertThatThrownBy(() -> resourceService.moveResource(FIRST_USER_ID, "test.txt", "notExistFolder/target.txt"))
                     .isInstanceOf(ResourceNotFoundException.class);
         }
     }
@@ -363,12 +363,12 @@ public class ResourcesServiceTest {
             UploadFileItem firstFile = createFileItem("test.txt", DEFAULT_CONTENT);
             UploadFileItem secondFile = createFileItem("folder/source.txt", "source content");
             UploadFileItem thirdFile = createFileItem("folder/nested/deep/tooDeep/target.txt", "");
-            resourcesService.createDirectory(FIRST_USER_ID, "txt/");
-            resourcesService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(firstFile));
-            resourcesService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(secondFile));
-            resourcesService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(thirdFile));
+            resourceService.createDirectory(FIRST_USER_ID, "txt/");
+            resourceService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(firstFile));
+            resourceService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(secondFile));
+            resourceService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(thirdFile));
 
-            List<ResourceResponseDto> response = resourcesService.search(FIRST_USER_ID, ".txt");
+            List<ResourceResponseDto> response = resourceService.search(FIRST_USER_ID, ".txt");
 
             assertThat(response).hasSize(3);
             assertThat(response).extracting(
@@ -385,10 +385,10 @@ public class ResourcesServiceTest {
         void shouldNotReturnResourcesBelongingToAnotherUser() {
             UploadFileItem firstUserFile = createFileItem("firstUserFile.txt", DEFAULT_CONTENT);
             UploadFileItem secondUserFile = createFileItem("secondUserFile.txt", DEFAULT_CONTENT);
-            resourcesService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(firstUserFile));
-            resourcesService.uploadResources(SECOND_USER_ID, ROOT_PATH, List.of(secondUserFile));
+            resourceService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(firstUserFile));
+            resourceService.uploadResources(SECOND_USER_ID, ROOT_PATH, List.of(secondUserFile));
 
-            List<ResourceResponseDto> response = resourcesService.search(FIRST_USER_ID, "UserFile");
+            List<ResourceResponseDto> response = resourceService.search(FIRST_USER_ID, "UserFile");
 
             assertThat(response).hasSize(1)
                     .extracting(ResourceResponseDto::name)
@@ -403,9 +403,9 @@ public class ResourcesServiceTest {
         void shouldDownloadFileWithCorrectContent() throws IOException {
             byte[] expectedBytes = DEFAULT_CONTENT.getBytes(StandardCharsets.UTF_8);
             UploadFileItem file = createFileItem("test.txt", DEFAULT_CONTENT);
-            resourcesService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(file));
+            resourceService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(file));
 
-            DownloadResult result = resourcesService.downloadResource(FIRST_USER_ID, "test.txt");
+            DownloadResult result = resourceService.downloadResource(FIRST_USER_ID, "test.txt");
             byte[] actualBytes = readAllBytes(result);
 
             assertThat(result.filename()).isEqualTo("test.txt");
@@ -414,7 +414,7 @@ public class ResourcesServiceTest {
 
         @Test
         void shouldDownloadDirectoryAsZipWithCorrectEntries() throws IOException {
-            resourcesService.createDirectory(FIRST_USER_ID, "folder/");
+            resourceService.createDirectory(FIRST_USER_ID, "folder/");
             String firstContent = "first content";
             String secondContent = "second content";
             UploadFileItem firstFile = createFileItem("first.txt", firstContent);
@@ -423,9 +423,9 @@ public class ResourcesServiceTest {
                     firstFile,
                     secondFile
             );
-            resourcesService.uploadResources(FIRST_USER_ID, "folder/", files);
+            resourceService.uploadResources(FIRST_USER_ID, "folder/", files);
 
-            DownloadResult result = resourcesService.downloadResource(FIRST_USER_ID, "folder/");
+            DownloadResult result = resourceService.downloadResource(FIRST_USER_ID, "folder/");
             byte[] zipBytes = readAllBytes(result);
 
             try (ZipInputStream zipInputStream = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {

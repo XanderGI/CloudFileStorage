@@ -5,7 +5,7 @@ import io.github.XanderGI.dto.response.ResourceResponseDto;
 import io.github.XanderGI.dto.request.CreateDirectoryRequestDto;
 import io.github.XanderGI.dto.request.DirectoryPathRequestDto;
 import io.github.XanderGI.security.SecurityUser;
-import io.github.XanderGI.service.ResourcesService;
+import io.github.XanderGI.service.ResourceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,14 +19,14 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/directory")
 public class DirectoryController implements DirectoryControllerApi {
-    private final ResourcesService resourcesService;
+    private final ResourceService resourceService;
 
     @PostMapping
     public ResponseEntity<ResourceResponseDto> createDirectory(
             @Valid @ModelAttribute CreateDirectoryRequestDto request,
             @AuthenticationPrincipal SecurityUser currentUser
     ) {
-        ResourceResponseDto dto = resourcesService.createDirectory(currentUser.getId(), request.path());
+        ResourceResponseDto dto = resourceService.createDirectory(currentUser.getId(), request.path());
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -38,7 +38,7 @@ public class DirectoryController implements DirectoryControllerApi {
             @Valid @ModelAttribute DirectoryPathRequestDto request,
             @AuthenticationPrincipal SecurityUser currentUser
     ) {
-        List<ResourceResponseDto> list = resourcesService.listDirectory(currentUser.getId(), request.path());
+        List<ResourceResponseDto> list = resourceService.getDirectoryContent(currentUser.getId(), request.path());
 
         return ResponseEntity.ok(list);
     }

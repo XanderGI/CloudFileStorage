@@ -7,7 +7,7 @@ import io.github.XanderGI.exception.ResourceAlreadyExistsException;
 import io.github.XanderGI.exception.ResourceNotFoundException;
 import io.github.XanderGI.mapper.ResourceDtoMapper;
 import io.github.XanderGI.service.MinioPathHelper;
-import io.github.XanderGI.service.ResourcesService;
+import io.github.XanderGI.service.ResourceService;
 import io.github.XanderGI.storage.StorageClient;
 import io.github.XanderGI.storage.StorageItem;
 import io.github.XanderGI.storage.StorageObjectInfo;
@@ -28,7 +28,7 @@ import java.util.zip.ZipOutputStream;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ResourcesServiceImpl implements ResourcesService {
+public class ResourceServiceImpl implements ResourceService {
     private final StorageClient storageClient;
     private final MinioPathHelper helper;
     private final ResourceDtoMapper mapper;
@@ -56,7 +56,7 @@ public class ResourcesServiceImpl implements ResourcesService {
     }
 
     @Override
-    public List<ResourceResponseDto> listDirectory(Long userId, String path) {
+    public List<ResourceResponseDto> getDirectoryContent(Long userId, String path) {
         String key = helper.buildMinioKey(userId, path);
         boolean isRoot = path.equals("/");
 

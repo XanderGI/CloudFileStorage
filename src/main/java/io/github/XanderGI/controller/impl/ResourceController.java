@@ -10,7 +10,7 @@ import io.github.XanderGI.dto.request.UploadResourceRequestDto;
 import io.github.XanderGI.dto.response.ResourceResponseDto;
 import io.github.XanderGI.mapper.UploadFileItemMapper;
 import io.github.XanderGI.security.SecurityUser;
-import io.github.XanderGI.service.ResourcesService;
+import io.github.XanderGI.service.ResourceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ContentDisposition;
@@ -29,7 +29,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/resource")
 public class ResourceController implements ResourceControllerApi {
-    private final ResourcesService resourcesService;
+    private final ResourceService resourceService;
     private final UploadFileItemMapper mapper;
 
     @GetMapping
@@ -37,7 +37,7 @@ public class ResourceController implements ResourceControllerApi {
             @Valid @ModelAttribute ResourcePathRequestDto request,
             @AuthenticationPrincipal SecurityUser currentUser
     ) {
-        ResourceResponseDto dto = resourcesService.getResourceInfo(currentUser.getId(), request.path());
+        ResourceResponseDto dto = resourceService.getResourceInfo(currentUser.getId(), request.path());
 
         return ResponseEntity.ok(dto);
     }
@@ -47,7 +47,7 @@ public class ResourceController implements ResourceControllerApi {
             @Valid @ModelAttribute ResourcePathRequestDto request,
             @AuthenticationPrincipal SecurityUser currentUser
     ) {
-        resourcesService.deleteResource(currentUser.getId(), request.path());
+        resourceService.deleteResource(currentUser.getId(), request.path());
 
         return ResponseEntity.noContent().build();
     }
@@ -60,7 +60,7 @@ public class ResourceController implements ResourceControllerApi {
     ) {
         List<UploadFileItem> fileItems = mapper.toUploadFileItems(files);
 
-        List<ResourceResponseDto> responseList = resourcesService.uploadResources(
+        List<ResourceResponseDto> responseList = resourceService.uploadResources(
                 currentUser.getId(),
                 request.path(),
                 fileItems
@@ -76,7 +76,7 @@ public class ResourceController implements ResourceControllerApi {
             @Valid @ModelAttribute SearchRequestDto request,
             @AuthenticationPrincipal SecurityUser currentUser
     ) {
-        List<ResourceResponseDto> responseList = resourcesService.search(currentUser.getId(), request.query());
+        List<ResourceResponseDto> responseList = resourceService.search(currentUser.getId(), request.query());
 
         return ResponseEntity.ok(responseList);
     }
@@ -86,7 +86,7 @@ public class ResourceController implements ResourceControllerApi {
             @Valid @ModelAttribute MoveResourceRequestDto request,
             @AuthenticationPrincipal SecurityUser currentUser
     ) {
-        ResourceResponseDto response = resourcesService.moveResource(
+        ResourceResponseDto response = resourceService.moveResource(
                 currentUser.getId(),
                 request.from(),
                 request.to()
@@ -100,7 +100,7 @@ public class ResourceController implements ResourceControllerApi {
             @Valid @ModelAttribute ResourcePathRequestDto request,
             @AuthenticationPrincipal SecurityUser currentUser
     ) {
-        DownloadResult content = resourcesService.downloadResource(currentUser.getId(), request.path());
+        DownloadResult content = resourceService.downloadResource(currentUser.getId(), request.path());
 
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)

@@ -6,10 +6,10 @@ import io.github.XanderGI.dto.internal.UploadFileItem;
 
 import java.util.List;
 
-public interface ResourcesService {
+public interface ResourceService {
     ResourceResponseDto createDirectory(Long userId, String path);
 
-    List<ResourceResponseDto> listDirectory(Long userId, String path);
+    List<ResourceResponseDto> getDirectoryContent(Long userId, String path);
 
     ResourceResponseDto getResourceInfo(Long userId, String path);
 
