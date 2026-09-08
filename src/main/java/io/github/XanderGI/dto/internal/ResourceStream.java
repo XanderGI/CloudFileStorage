@@ -1,4 +1,4 @@
-package io.github.XanderGI.service;
+package io.github.XanderGI.dto.internal;
 
 import java.io.IOException;
 import java.io.OutputStream;
