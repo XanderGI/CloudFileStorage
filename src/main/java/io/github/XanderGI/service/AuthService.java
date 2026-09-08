@@ -8,5 +8,4 @@ public interface AuthService {
     Authentication signUp(UserRequestDto dto);
 
     Authentication signIn(UserRequestDto dto);
-
 }
