@@ -8,6 +8,7 @@ import io.github.XanderGI.exception.ResourceNotFoundException;
 import io.github.XanderGI.mapper.ResourceDtoMapper;
 import io.github.XanderGI.service.MinioPathHelper;
 import io.github.XanderGI.service.ResourceService;
+import io.github.XanderGI.service.ResourceZipBuilder;
 import io.github.XanderGI.storage.StorageClient;
 import io.github.XanderGI.storage.StorageItem;
 import io.github.XanderGI.storage.StorageObjectInfo;
@@ -15,21 +16,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ResourceServiceImpl implements ResourceService {
     private final StorageClient storageClient;
+    private final ResourceZipBuilder zipBuilder;
     private final MinioPathHelper helper;
     private final ResourceDtoMapper mapper;
 
@@ -184,7 +182,7 @@ public class ResourceServiceImpl implements ResourceService {
         if (helper.isFolder(key)) {
             return new DownloadResult(
                     fileName.concat(".zip"),
-                    outputStream -> buildZip(key, outputStream)
+                    outputStream -> zipBuilder.buildZip(key, outputStream)
             );
         } else {
             return new DownloadResult(
@@ -264,29 +262,6 @@ public class ResourceServiceImpl implements ResourceService {
         log.info("Resource moved: from {}, to {}, for user {}", fromKey, toKey, userId);
 
         return buildResourceResponse(userId, toKey, size, false);
-    }
-
-    private void buildZip(String key, OutputStream outputStream) throws IOException {
-        List<StorageItem> items = storageClient.listObjects(key, true);
-
-        try (ZipOutputStream zipStream = new ZipOutputStream(outputStream)) {
-            for (StorageItem item : items) {
-                String itemKey = item.key();
-
-                if (item.isDirectory()) {
-                    continue;
-                }
-
-                String entryName = itemKey.substring(key.length());
-                zipStream.putNextEntry(new ZipEntry(entryName));
-
-                try (InputStream fileStream = storageClient.getObject(itemKey)) {
-                    fileStream.transferTo(zipStream);
-                }
-
-                zipStream.closeEntry();
-            }
-        }
     }
 
     private ResourceResponseDto buildResourceResponse(Long userId, String key, Long size, boolean isDirectory) {
