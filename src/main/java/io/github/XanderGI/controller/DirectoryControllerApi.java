@@ -81,7 +81,7 @@ public interface DirectoryControllerApi {
             )
     })
     @SecurityRequirement(name = "cookieAuth")
-    ResponseEntity<List<ResourceResponseDto>> getDirectoryInfo(
+    ResponseEntity<List<ResourceResponseDto>> getDirectoryContent(
             @Valid @ParameterObject DirectoryPathRequestDto request,
             @Parameter(hidden = true)
             SecurityUser currentUser

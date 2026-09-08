@@ -34,7 +34,7 @@ public class DirectoryController implements DirectoryControllerApi {
     }
 
     @GetMapping
-    public ResponseEntity<List<ResourceResponseDto>> getDirectoryInfo(
+    public ResponseEntity<List<ResourceResponseDto>> getDirectoryContent(
             @Valid @ModelAttribute DirectoryPathRequestDto request,
             @AuthenticationPrincipal SecurityUser currentUser
     ) {
