@@ -113,6 +113,11 @@ public class ResourceServiceImpl implements ResourceService {
     public List<ResourceResponseDto> uploadResources(Long userId, String path, List<UploadFileItem> files) {
         List<ResourceResponseDto> responseList = new ArrayList<>();
         Set<String> keysInBatch = new HashSet<>();
+        String key = helper.buildMinioKey(userId, path);
+
+        if (!path.equals("/") && !storageClient.isExist(key)) {
+            throw new ResourceNotFoundException("Failed to upload resources: target folder does not exist");
+        }
 
         for (UploadFileItem file : files) {
             String fileName = file.originalFilename();
