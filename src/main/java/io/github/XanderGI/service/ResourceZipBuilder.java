@@ -23,12 +23,14 @@ public class ResourceZipBuilder {
         try (ZipOutputStream zipStream = new ZipOutputStream(outputStream)) {
             for (StorageItem item : items) {
                 String itemKey = item.key();
+                String entryName = itemKey.substring(key.length());
 
                 if (item.isDirectory()) {
+                    zipStream.putNextEntry(new ZipEntry(entryName));
+                    zipStream.closeEntry();
                     continue;
                 }
 
-                String entryName = itemKey.substring(key.length());
                 zipStream.putNextEntry(new ZipEntry(entryName));
 
                 try (InputStream fileStream = storageClient.getObject(itemKey)) {
