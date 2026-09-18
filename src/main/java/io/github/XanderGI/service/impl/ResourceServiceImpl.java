@@ -34,8 +34,9 @@ public class ResourceServiceImpl implements ResourceService {
     @Override
     public ResourceResponseDto createDirectory(Long userId, String path) {
         String key = helper.buildMinioKey(userId, path);
+        String pairKey = helper.getPairForKey(key);
 
-        if (storageClient.isExist(key)) {
+        if (storageClient.isExist(key) || storageClient.isExist(pairKey)) {
             throw new ResourceAlreadyExistsException("Failed to create directory: resource already exist.");
         }
 
@@ -117,12 +118,13 @@ public class ResourceServiceImpl implements ResourceService {
             String fileName = file.originalFilename();
             String filePath = helper.buildFilePath(path, fileName);
             String fileKey = helper.buildMinioKey(userId, filePath);
+            String pairFileKey = helper.getPairForKey(fileKey);
 
             if (!keysInBatch.add(fileKey)) {
                 throw new ResourceAlreadyExistsException("Failed to upload file: duplicate file \"%s\" in request".formatted(fileName));
             }
 
-            if (storageClient.isExist(fileKey)) {
+            if (storageClient.isExist(fileKey) || storageClient.isExist(pairFileKey)) {
                 throw new ResourceAlreadyExistsException("Failed to upload file: resource \"%s\" already exist".formatted(fileName));
             }
         }
@@ -200,6 +202,7 @@ public class ResourceServiceImpl implements ResourceService {
     public ResourceResponseDto moveResource(Long userId, String from, String to) {
         String fromKey = helper.buildMinioKey(userId, from);
         String toKey = helper.buildMinioKey(userId, to);
+        String pairToKey = helper.getPairForKey(toKey);
         boolean sourceIsDirectory = helper.isFolder(fromKey);
 
         if (!storageClient.isExist(fromKey)) {
@@ -210,7 +213,7 @@ public class ResourceServiceImpl implements ResourceService {
             throw new IllegalArgumentException("Incompatible source and destination types for move operation");
         }
 
-        if (storageClient.isExist(toKey)) {
+        if (storageClient.isExist(toKey) || storageClient.isExist(pairToKey)) {
             throw new ResourceAlreadyExistsException("failed to move resource: resource to target path already exist");
         }
 

@@ -45,6 +45,11 @@ public class MinioPathHelper {
         return buildRootPrefix(userId).concat(cleanPath);
     }
 
+    public String getPairForKey(String key) {
+        boolean isFolderKey = isFolder(key);
+        return isFolderKey ? StringUtils.trimTrailingCharacter(key, '/') : key.concat(ROOT_PATH);
+    }
+
     public String getName(String path) {
         String normalizePath = normalizeForParsing(path);
         return FilenameUtils.getName(normalizePath);
