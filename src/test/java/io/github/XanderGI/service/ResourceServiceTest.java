@@ -2,9 +2,9 @@ package io.github.XanderGI.service;
 
 import io.github.XanderGI.TestcontainersConfiguration;
 import io.github.XanderGI.dto.internal.DownloadResult;
+import io.github.XanderGI.dto.internal.UploadFileItem;
 import io.github.XanderGI.dto.response.ResourceResponseDto;
 import io.github.XanderGI.dto.response.ResourceType;
-import io.github.XanderGI.dto.internal.UploadFileItem;
 import io.github.XanderGI.exception.ResourceAlreadyExistsException;
 import io.github.XanderGI.exception.ResourceNotFoundException;
 import io.github.XanderGI.storage.StorageClient;
@@ -73,7 +73,7 @@ public class ResourceServiceTest {
 
             List<ResourceResponseDto> response = resourceService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(fileItem));
 
-            ResourceResponseDto expected = new ResourceResponseDto("/", "test.txt", fileItem.size(), ResourceType.FILE);
+            ResourceResponseDto expected = new ResourceResponseDto("", "test.txt", fileItem.size(), ResourceType.FILE);
             assertThat(response).isNotEmpty();
             assertThat(storageClient.isExist(firstUserKeyFile)).isTrue();
             assertThat(response)
@@ -101,7 +101,7 @@ public class ResourceServiceTest {
                     ResourceResponseDto::size, ResourceResponseDto::type
             ).containsExactlyInAnyOrder(
                     tuple("subfolder/", "test.txt", fileItem.size(), ResourceType.FILE),
-                    tuple("/", "subfolder", null, ResourceType.DIRECTORY)
+                    tuple("", "subfolder", null, ResourceType.DIRECTORY)
             );
         }
 
@@ -153,15 +153,15 @@ public class ResourceServiceTest {
                     ResourceResponseDto::path, ResourceResponseDto::name,
                     ResourceResponseDto::size, ResourceResponseDto::type
             ).containsExactlyInAnyOrder(
-                    tuple("/", "firstFile.txt", firstFileItem.size(), ResourceType.FILE),
-                    tuple("/", "secondFile.md", secondFileItem.size(), ResourceType.FILE)
+                    tuple("", "firstFile.txt", firstFileItem.size(), ResourceType.FILE),
+                    tuple("", "secondFile.md", secondFileItem.size(), ResourceType.FILE)
             );
         }
 
         @Test
         void shouldReturnOnlyDirectChildrenWhenListingDirectory() {
             UploadFileItem file = createFileItem("nested/deep/test.txt", "deep content");
-            resourceService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(file));
+            resourceService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(file)); // здесь упал тест
 
             List<ResourceResponseDto> response = resourceService.getDirectoryContent(FIRST_USER_ID, "nested/");
 
@@ -194,7 +194,7 @@ public class ResourceServiceTest {
         void shouldCreateDirectorySuccessfully() {
             String firstUserKeyFolder = firstUserKey("testFolder/");
 
-            ResourceResponseDto expected = new ResourceResponseDto(ROOT_PATH, "testFolder", null, ResourceType.DIRECTORY);
+            ResourceResponseDto expected = new ResourceResponseDto("", "testFolder", null, ResourceType.DIRECTORY);
             assertThat(resourceService.createDirectory(FIRST_USER_ID, "testFolder/"))
                     .usingRecursiveComparison()
                     .isEqualTo(expected);
@@ -262,7 +262,7 @@ public class ResourceServiceTest {
 
             ResourceResponseDto response = resourceService.moveResource(FIRST_USER_ID, "notRenamed.txt", "renamed.txt");
 
-            ResourceResponseDto expected = new ResourceResponseDto(ROOT_PATH, "renamed.txt", file.size(), ResourceType.FILE);
+            ResourceResponseDto expected = new ResourceResponseDto("", "renamed.txt", file.size(), ResourceType.FILE);
             assertThat(storageClient.isExist(firstUserKeyNotRenamedFile)).isFalse();
             assertThat(storageClient.isExist(firstUserKeyRenamedFile)).isTrue();
             assertThat(response)
@@ -302,6 +302,7 @@ public class ResourceServiceTest {
                     firstFile,
                     secondFile
             );
+            resourceService.createDirectory(FIRST_USER_ID, "oldFolder/");
             resourceService.uploadResources(FIRST_USER_ID, "oldFolder/", files);
 
             resourceService.moveResource(FIRST_USER_ID, "oldFolder/", "newFolder/");
@@ -375,7 +376,7 @@ public class ResourceServiceTest {
                     ResourceResponseDto::path, ResourceResponseDto::name,
                     ResourceResponseDto::size, ResourceResponseDto::type
             ).containsExactlyInAnyOrder(
-                    tuple(ROOT_PATH, "test.txt", firstFile.size(), ResourceType.FILE),
+                    tuple("", "test.txt", firstFile.size(), ResourceType.FILE),
                     tuple("folder/", "source.txt", secondFile.size(), ResourceType.FILE),
                     tuple("folder/nested/deep/tooDeep/", "target.txt", thirdFile.size(), ResourceType.FILE)
             );

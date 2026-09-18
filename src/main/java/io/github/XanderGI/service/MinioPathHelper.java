@@ -56,11 +56,15 @@ public class MinioPathHelper {
     }
 
     public String getContextPath(String path) {
+        if (path.equals(ROOT_PATH)) {
+            return path;
+        }
+
         String normalizePath = normalizeForParsing(path);
         String contextPath = FilenameUtils.getFullPath(normalizePath);
 
         if (contextPath.isBlank()) {
-            return ROOT_PATH;
+            return "";
         }
 
         return contextPath;

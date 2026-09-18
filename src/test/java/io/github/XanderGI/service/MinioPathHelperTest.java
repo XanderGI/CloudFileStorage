@@ -160,7 +160,7 @@ public class MinioPathHelperTest {
     @CsvSource({
             "/folder1/text.txt, folder1/",
             "/folder1/folder2/, folder1/",
-            "folder3/, /",
+            "folder3/, ''",
 
     })
     void shouldReturnContextPathWhenCallGetContextPathMethod(String path, String expectedPath) {

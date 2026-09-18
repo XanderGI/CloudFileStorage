@@ -43,7 +43,7 @@ public class ResourceServiceImpl implements ResourceService {
         String contextPath = helper.getContextPathFromKey(userId, key);
         String parentKey = helper.buildMinioKey(userId, contextPath);
 
-        if (!contextPath.equals("/") && !storageClient.isExist(parentKey)) {
+        if (!contextPath.isEmpty() && !storageClient.isExist(parentKey)) {
             throw new ResourceNotFoundException("Failed to create directory: parent folder does not exist");
         }
 
