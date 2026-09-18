@@ -162,7 +162,12 @@ public class MinioStorageClient implements StorageClient {
         );
 
         StreamSupport.stream(results.spliterator(), false)
-                .forEach(this::unwrapResult);
+                .map(this::unwrapResult)
+                .findFirst()
+                .ifPresent(error -> {
+                    throw new MinioStorageException("Failed to delete object %s: %s"
+                            .formatted(error.objectName(), error.message()));
+                });
     }
 
     @Override
