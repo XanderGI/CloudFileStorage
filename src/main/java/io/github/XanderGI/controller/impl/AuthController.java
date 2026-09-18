@@ -69,6 +69,10 @@ public class AuthController implements AuthControllerApi {
     }
 
     private void setupSecurityContext(Authentication auth, HttpServletRequest req, HttpServletResponse resp) {
+        if (req.getSession(false) != null) {
+            req.changeSessionId();
+        }
+
         SecurityContext context = SecurityContextHolder.createEmptyContext();
 
         context.setAuthentication(auth);
