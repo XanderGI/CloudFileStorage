@@ -214,6 +214,10 @@ public class ResourceServiceImpl implements ResourceService {
             throw new ResourceAlreadyExistsException("failed to move resource: resource to target path already exist");
         }
 
+        if (sourceIsDirectory && toKey.equals(from)) {
+            throw new IllegalArgumentException("Cannot move a directory into itself");
+        }
+
         String contextPathTo = helper.getContextPathFromKey(userId, toKey);
         String contextPathToKey = helper.buildMinioKey(userId, contextPathTo);
 
