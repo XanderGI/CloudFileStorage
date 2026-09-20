@@ -5,14 +5,23 @@ import io.github.XanderGI.dto.internal.DownloadResult;
 import io.github.XanderGI.dto.internal.UploadFileItem;
 import io.github.XanderGI.dto.response.ResourceResponseDto;
 import io.github.XanderGI.dto.response.ResourceType;
+import io.github.XanderGI.exception.MinioStorageException;
 import io.github.XanderGI.exception.ResourceAlreadyExistsException;
 import io.github.XanderGI.exception.ResourceNotFoundException;
 import io.github.XanderGI.storage.StorageClient;
-import io.github.XanderGI.storage.StorageItem;
+import io.minio.ListObjectsArgs;
+import io.minio.MinioClient;
+import io.minio.RemoveObjectsArgs;
+import io.minio.Result;
+import io.minio.errors.MinioException;
+import io.minio.messages.DeleteRequest;
+import io.minio.messages.DeleteResult;
+import io.minio.messages.Item;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
@@ -25,6 +34,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -38,8 +48,11 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 public class ResourceServiceTest {
     private static final Long FIRST_USER_ID = 1L;
     private static final Long SECOND_USER_ID = 2L;
-    private static final String ROOT_PATH = "/";
+    private static final String ROOT_PATH = "";
     private static final String DEFAULT_CONTENT = "test content";
+
+    @Value("${minio.bucket}")
+    private String bucketName;
 
     @Autowired
     private ResourceService resourceService;
@@ -48,20 +61,43 @@ public class ResourceServiceTest {
     private StorageClient storageClient;
 
     @Autowired
+    private MinioClient minioClient;
+
+    @Autowired
     private MinioPathHelper helper;
 
     @AfterEach
     void clearBucket() {
-        List<String> firstUserKeys = storageClient.listObjects(firstUserKey(""), true).stream()
-                .map(StorageItem::key)
+        Iterable<Result<Item>> listObjects = minioClient.listObjects(
+                ListObjectsArgs.builder()
+                        .bucket(bucketName)
+                        .prefix("")
+                        .recursive(true)
+                        .build()
+        );
+
+        List<String> listKeys = StreamSupport.stream(listObjects.spliterator(), false)
+                .map(this::unwrap)
+                .map(Item::objectName)
                 .toList();
 
-        List<String> secondUserKeys = storageClient.listObjects(secondUserKey(""), true).stream()
-                .map(StorageItem::key)
-                .toList();
+        Iterable<Result<DeleteResult.Error>> listDeleted = minioClient.removeObjects(
+                RemoveObjectsArgs.builder()
+                        .bucket(bucketName)
+                        .objects(listKeys.stream()
+                                .map(DeleteRequest.Object::new)
+                                .toList()
+                        )
+                        .build()
+        );
 
-        storageClient.removeObjects(firstUserKeys);
-        storageClient.removeObjects(secondUserKeys);
+        StreamSupport.stream(listDeleted.spliterator(), false)
+                .map(this::unwrap)
+                .findFirst()
+                .ifPresent(error -> {
+                    throw new MinioStorageException("Failed to delete object %s: %s"
+                            .formatted(error.objectName(), error.message()));
+                });
     }
 
     @Nested
@@ -354,6 +390,31 @@ public class ResourceServiceTest {
             assertThatThrownBy(() -> resourceService.moveResource(FIRST_USER_ID, "test.txt", "notExistFolder/target.txt"))
                     .isInstanceOf(ResourceNotFoundException.class);
         }
+
+        @Test
+        void shouldThrowIllegalArgExceptionWhenMoveResourceItself() {
+            resourceService.createDirectory(FIRST_USER_ID, "docs/");
+            resourceService.createDirectory(FIRST_USER_ID, "docs/archive/");
+            UploadFileItem file = createFileItem("doc.txt", DEFAULT_CONTENT);
+            resourceService.uploadResources(FIRST_USER_ID, "docs/", List.of(file));
+
+            assertThatThrownBy(() -> resourceService.moveResource(FIRST_USER_ID, "docs/", "docs/archive/docs/"))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void shouldThrowResourceAlreadyExistExceptionWhenHavePairResource() {
+            UploadFileItem file = createFileItem("test.txt", DEFAULT_CONTENT);
+            resourceService.uploadResources(FIRST_USER_ID, ROOT_PATH, List.of(file));
+            resourceService.createDirectory(FIRST_USER_ID, "docs/");
+
+            assertThatThrownBy(() -> resourceService.createDirectory(FIRST_USER_ID, "test.txt/"))
+                    .isInstanceOf(ResourceAlreadyExistsException.class);
+
+            assertThatThrownBy(() -> resourceService.moveResource(FIRST_USER_ID, "test.txt", "docs"))
+                    .isInstanceOf(ResourceAlreadyExistsException.class);
+
+        }
     }
 
     @Nested
@@ -470,5 +531,13 @@ public class ResourceServiceTest {
         result.resourceStream().writeTo(outputStream);
 
         return outputStream.toByteArray();
+    }
+
+    private <T> T unwrap(Result<T> result) {
+        try {
+            return result.get();
+        } catch (MinioException e) {
+            throw new MinioStorageException("Failed to process storage result", e);
+        }
     }
 }
