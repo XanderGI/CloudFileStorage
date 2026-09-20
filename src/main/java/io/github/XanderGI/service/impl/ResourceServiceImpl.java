@@ -115,7 +115,7 @@ public class ResourceServiceImpl implements ResourceService {
         Set<String> keysInBatch = new HashSet<>();
         String key = helper.buildMinioKey(userId, path);
 
-        if (!path.equals("/") && !storageClient.isExist(key)) {
+        if (!path.isEmpty() && !storageClient.isExist(key)) {
             throw new ResourceNotFoundException("Failed to upload resources: target folder does not exist");
         }
 
@@ -222,14 +222,14 @@ public class ResourceServiceImpl implements ResourceService {
             throw new ResourceAlreadyExistsException("failed to move resource: resource to target path already exist");
         }
 
-        if (sourceIsDirectory && toKey.startsWith(from)) {
+        if (sourceIsDirectory && toKey.startsWith(fromKey)) {
             throw new IllegalArgumentException("Cannot move a directory into itself");
         }
 
         String contextPathTo = helper.getContextPathFromKey(userId, toKey);
         String contextPathToKey = helper.buildMinioKey(userId, contextPathTo);
 
-        if (!contextPathTo.equals("/") && !storageClient.isExist(contextPathToKey)) {
+        if (!contextPathTo.isEmpty() && !storageClient.isExist(contextPathToKey)) {
             throw new ResourceNotFoundException("failed to move resource: context path to target not exist");
         }
 
