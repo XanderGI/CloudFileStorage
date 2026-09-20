@@ -55,6 +55,7 @@ public class SecurityConfiguration {
                         .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(this::handleUnauthorized))
+                .securityContext(c -> c.securityContextRepository(securityContextRepository()))
                 .build();
     }
 
