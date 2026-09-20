@@ -77,8 +77,8 @@ public class MinioPathHelper {
     }
 
     public String buildFilePath(String directoryPath, String originalFilename) {
-        if (directoryPath == null || directoryPath.isBlank()) {
-            throw new IllegalArgumentException("path must be not null or empty");
+        if (directoryPath == null) {
+            throw new IllegalArgumentException("path must be not null");
         }
 
         String contextPath = directoryPath.concat(originalFilename);
