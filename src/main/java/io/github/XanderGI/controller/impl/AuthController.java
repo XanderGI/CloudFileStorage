@@ -57,13 +57,9 @@ public class AuthController implements AuthControllerApi {
     public ResponseEntity<Void> signOut(HttpServletRequest req, HttpServletResponse resp) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        if (auth != null) {
-            SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
-
-            logoutHandler.setInvalidateHttpSession(true);
-
-            logoutHandler.logout(req, resp, auth);
-        }
+        SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
+        logoutHandler.setInvalidateHttpSession(true);
+        logoutHandler.logout(req, resp, auth);
 
         return ResponseEntity.noContent().build();
     }
