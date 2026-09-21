@@ -59,6 +59,9 @@ REDIS_PASSWORD=pass
 
 MINIO_USER=test
 MINIO_PASSWORD=pass
+
+GRAFANA_USER=test
+GRAFANA_PASSWORD=pass
 ```
 
 **3. Указать адрес бэкенда для фронтенда** в файле `deploy/config.js`:
@@ -93,25 +96,28 @@ docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --build
 | MinIO Console Web UI | http://localhost:9001                       |
 | PostgreSQL           | http://localhost:5430                       |
 | Redis                | http://localhost:6379                       |
+| Prometheus           | http://localhost:9090                       |
+| Grafana              | http://localhost:3000                       |
 
 ---
 
 ## Технологический стек
 
-| Категория             | Технологии                                                                                      |
-|-----------------------|-------------------------------------------------------------------------------------------------|
-| **Язык / Платформа**  | Java 17, Spring Boot 4.1                                                                        |
-| **Web / API**         | Spring Web MVC, REST, Springdoc OpenAPI (Swagger UI 3.1)                                        |
-| **Безопасность**      | Spring Security, Spring Session Data Redis                                                      |
-| **Базы данных**       | PostgreSQL, Spring Data JPA, Hibernate                                                          |
-| **Миграции**          | Liquibase                                                                                       |
-| **Файловое хранилище**| MinIO (S3-совместимое), Minio Java SDK 9.0.3                                                    |
-| **Сессии**            | Redis (через Spring Session)                                                                    |
-| **Утилиты**           | Lombok, Bean Validation (Jakarta)                                                               |
-| **Сборка**            | Gradle (Kotlin DSL)                                                                             |
-| **Инфраструктура**    | Docker, Docker Compose, Nginx                                                                   |
-| **Тесты**             | JUnit 5, Spring Boot Test, Testcontainers (PostgreSQL + MinIO)                                  |
-| **Фронтенд**          | [Готовый React SPA](https://github.com/zhukovsd/cloud-storage-frontend) (раздаётся через Nginx) |
+| Категория              | Технологии                                                                                      |
+|------------------------|-------------------------------------------------------------------------------------------------|
+| **Язык / Платформа**   | Java 17, Spring Boot 4.1                                                                        |
+| **Web / API**          | Spring Web MVC, REST, Springdoc OpenAPI (Swagger UI 3.1)                                        |
+| **Безопасность**       | Spring Security, Spring Session Data Redis                                                      |
+| **Базы данных**        | PostgreSQL, Spring Data JPA, Hibernate                                                          |
+| **Миграции**           | Liquibase                                                                                       |
+| **Файловое хранилище** | MinIO (S3-совместимое), Minio Java SDK 9.0.3                                                    |
+| **Сессии**             | Redis (через Spring Session)                                                                    |
+| **Утилиты**            | Lombok, Bean Validation (Jakarta)                                                               |
+| **Сборка**             | Gradle (Kotlin DSL)                                                                             |
+| **Инфраструктура**     | Docker, Docker Compose, Nginx                                                                   |
+| **Тесты**              | JUnit 5, Spring Boot Test, Testcontainers (PostgreSQL + MinIO)                                  |
+| **Фронтенд**           | [Готовый React SPA](https://github.com/zhukovsd/cloud-storage-frontend) (раздаётся через Nginx) |
+| **Мониторинг**         | Spring Boot Actuator, Prometheus, Grafana                                                       |
 
 ---
 
@@ -146,6 +152,7 @@ docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --build
 CloudFileStorage/
 ├── deploy/
 │   ├── config.js          # Конфигурация фронтенда (baseUrl API, правила валидации)
+│   ├── prometheus.yml     # Конфигурация Prometheus
 │   └── nginx.conf         # Конфиг Nginx для раздачи React SPA
 ├── http-tests/
 │   ├── directoryOperations.http   # Ручное тестирование Directory API
@@ -314,4 +321,4 @@ user-files/               ← единственный бакет
 ### Запуск тестов
 ```bash
 ./gradlew test
-```
+``
