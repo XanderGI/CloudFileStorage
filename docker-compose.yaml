@@ -80,8 +80,32 @@ services:
     depends_on:
       - backend
 
+  prometheus:
+    image: prom/prometheus:v3.13.3
+    container_name: prometheus_cloud_file_storage
+    volumes:
+      - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  grafana:
+    image: grafana/grafana:13.0
+    container_name: grafana_cloud_file_storage
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
 volumes:
   postgres_data:
   redis_data:
   minio_data:
   backend_logs:
+  prometheus_data:
+  grafana_data:
