@@ -94,8 +94,6 @@ docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d --build
 | Backend API          | http://localhost:8080                       |
 | Swagger UI           | http://localhost:8080/swagger-ui/index.html |
 | MinIO Console Web UI | http://localhost:9001                       |
-| PostgreSQL           | http://localhost:5430                       |
-| Redis                | http://localhost:6379                       |
 | Prometheus           | http://localhost:9090                       |
 | Grafana              | http://localhost:3000                       |
 
