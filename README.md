@@ -28,8 +28,8 @@
 
 ## Деплой
 Проект задеплоен на VPS:
-+ [Frontend](http://31.77.9.144)
-+ [Swagger UI](http://31.77.9.144/swagger-ui/index.html)
++ [Frontend](https://cloudfilestorage.xyz/)
++ [Swagger UI](https://cloudfilestorage.xyz/swagger-ui/index.html)
 
 **Тестовый пользователь:**
 + username: reviewer
